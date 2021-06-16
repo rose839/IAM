@@ -29,3 +29,16 @@ func WithDescription(desc string) Option {
 		app.description = desc
 	}
 }
+
+func NewApp(name string, basename string, opts... Option) *App {
+	a := &App {
+		name: name,
+		basename: basename,
+	}
+
+	for _, o := range opts {
+		o(a)
+	}
+
+	return a
+}
