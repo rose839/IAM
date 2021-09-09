@@ -39,7 +39,7 @@ EOF"
     # 5. Check status.
     iam::mariadb::status || return 1
     iam::mariadb::info
-    # iam::log::info "install MariaDB successfully"
+    iam::log::info "install MariaDB successfully"
 }
 
 # Uninstall
@@ -56,12 +56,12 @@ function iam::mariadb::uninstall() {
 function iam::mariadb::status() {
     # Check mariadb run status
     systemctl status mariadb | grep -q "active" || {
-        # iam::log::error "mariadb failed to start, maybe not installed properly"
+        iam::log::error "mariadb failed to start, maybe not installed properly"
         return 1
     }
 
     mysql -u${MARIADB_ADMIN_USERNAME} -p${MARIADB_ADMIN_PASSWORD} -e quit &>/dev/null || {
-        # iam::log::error "can not login with root, mariadb maybe not initialized properly"
+        iam::log::error "can not login with root, mariadb maybe not initialized properly"
         return 1
     }
 }

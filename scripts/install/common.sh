@@ -17,6 +17,7 @@ COMMON_SOURCED=true
 # The root dir of the project.
 IAM_ROOT=$(dirname "${BASH_SOURCE[0]}")/../..
 
+source $IAM_ROOT/scripts/lib/init.sh
 source $IAM_ROOT/scripts/install/environment.sh
 
 # Redefine sudo, not need password.
