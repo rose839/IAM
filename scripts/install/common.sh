@@ -15,7 +15,9 @@ set -o pipefail
 COMMON_SOURCED=true
 
 # The root dir of the project.
-IAM_ROOT=$(dirname ${BASH_SOURCE[0]})/../..
+IAM_ROOT=$(dirname "${BASH_SOURCE[0]}")/../..
+
+source $IAM_ROOT/scripts/install/environment.sh
 
 # Redefine sudo, not need password.
 function iam::common::sudo() {

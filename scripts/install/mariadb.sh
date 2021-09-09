@@ -1,5 +1,7 @@
 #!/bin/bash
 
+IAM_ROOT=$(dirname "${BASH_SOURCE[0]}")/../..
+
 [[ -z $COMMON_SOURCED ]] && source ${IAM_ROOT}/scripts/install/common.sh
 
 # Print info after install.
@@ -37,14 +39,14 @@ EOF"
     # 5. Check status.
     iam::mariadb::status || return 1
     iam::mariadb::info
-    iam::log::info "install MariaDB successfully"
+    # iam::log::info "install MariaDB successfully"
 }
 
 # Uninstall
 function iam::mariadb::uninstall() {
     iam::common::sudo "systemctl stop mariadb"
     iam::common::sudo "systemctl disable mariadb"
-    iam::common::sudo "yum remove-y MariaDB-server MariaDB-client"
+    iam::common::sudo "yum remove -y MariaDB-server MariaDB-client"
     iam::common::sudo "rm -rf /var/lib/mysql"
     iam::common::sudo "rm -f /etc/yum.repos.d/mariadb-10.2.repo"
     iam::log::info "uninstall MariaDB successfully"
@@ -53,13 +55,13 @@ function iam::mariadb::uninstall() {
 # Status check
 function iam::mariadb::status() {
     # Check mariadb run status
-    systemctl status mariadb | grep -q || {
-        iam::log::error "mariadb failed to start, maybe not installed properly"
+    systemctl status mariadb | grep -q "active" || {
+        # iam::log::error "mariadb failed to start, maybe not installed properly"
         return 1
     }
 
     mysql -u${MARIADB_ADMIN_USERNAME} -p${MARIADB_ADMIN_PASSWORD} -e quit &>/dev/null || {
-        iam::log::error "can not login with root, mariadb maybe not initialized properly"
+        # iam::log::error "can not login with root, mariadb maybe not initialized properly"
         return 1
     }
 }
