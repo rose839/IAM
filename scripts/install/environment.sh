@@ -16,3 +16,9 @@ readonly MARIADB_HOST=${MARIADB_HOST:-127.0.0.1:3306} # MariaDB host address
 readonly MARIADB_DATABASE=${MARIADB_DATABASE:-iam} # MariaDB iam database
 readonly MARIADB_USERNAME=${MARIADB_USERNAME:-iam} # iam database username
 readonly MARIADB_PASSWORD=${MARIADB_PASSWORD:-${PASSWORD}} # iam database password
+
+# Redis configuration
+readonly REDIS_HOST=${REDIS_HOST:-127.0.0.1} # Redis host
+readonly REDIS_PORT=${REDIS_PORT:-6379} # Redis port
+readonly REDIS_USERNAME=${REDIS_USERNAME:-''} # Redis user name
+readonly REDIS_PASSWORD=${REDIS_PASSWORD:-${PASSWORD}} # Redis user password
