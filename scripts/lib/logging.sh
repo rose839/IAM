@@ -10,7 +10,7 @@ function iam::log::info() {
     fi
 
     for message; do
-        echo message
+        echo $message
     done
 }
 
