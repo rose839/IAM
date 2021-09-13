@@ -23,12 +23,14 @@ func init() {
 // addConfigFlag adds flags for a specific server to the specified FlagSet
 // object.
 func addConfigFlag(basename string, fs *pflag.FlagSet) {
+	// Add "--config" flag to specified flagset
 	fs.AddFlag(pflag.Lookup(configFlagName))
 
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix(strings.Replace(strings.ToUpper(basename), "-", "_", -1))
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 
+	// Read config from config file by viper
 	cobra.OnInitialize(func() {
 		if cfgFile != "" {
 			viper.SetConfigFile(cfgFile)

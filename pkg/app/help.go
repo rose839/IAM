@@ -22,13 +22,13 @@ func helpCommand(name string) *cobra.Command {
 		Simply type ` + name + ` help [path to command] for full details.`,
 
 		Run: func(c *cobra.Command, args []string) {
-			cmd, _, e := c.Root().Find(args)
+			cmd, _, e := c.Root().Find(args) // find sub command that need print help info
 			if cmd == nil || e != nil {
 				c.Printf("Unknown help topic %#q\n", args)
 				_ = c.Root().Usage()
 			} else {
 				cmd.InitDefaultHelpFlag() // make possible 'help' flag to be shown
-				_ = cmd.Help()
+				_ = cmd.Help()            // call command helpFunc
 			}
 		},
 	}

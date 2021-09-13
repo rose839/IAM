@@ -8,7 +8,6 @@ import (
 	"github.com/marmotedu/log"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"k8s.io/client-go/pkg/version"
 )
 
 var progressMessage = color.GreenString("==>")
@@ -16,14 +15,14 @@ var progressMessage = color.GreenString("==>")
 // App is the main structure of a cli app, it's recommanded
 // that an app be created with the app.NewApp func.
 type App struct {
-	basename    string  // app name
-	name        string  // short description
-	description string  // long description
-	runFunc     RunFunc // user-defined main func
-	silence     bool
-	noVersion   bool
-	noConfig    bool
-	options     CliOptions           // user-defined struct of cli options
+	basename    string               // app name
+	name        string               // short description
+	description string               // long description
+	version     string               // app version
+	runFunc     RunFunc              // user-defined main func
+	silence     bool                 // silence mode at startup phase
+	noConfig    bool                 // whether add "--config" flag
+	options     CliOptions           // user-defined struct of cli options, used to store config and register flag
 	commands    []*Command           // sub command
 	args        cobra.PositionalArgs // validation func of positional arguments(arg is belong to command, not flag)
 	cmd         *cobra.Command       // root command
@@ -58,19 +57,19 @@ func WithDescription(desc string) Option {
 	}
 }
 
+// WithVersion set the application does not provide version flag.
+func WithVersion(version string) Option {
+	return func(a *App) {
+		a.version = version
+	}
+}
+
 // WithSilence sets the application to silent mode, in which the program startup
 // information, configuration information, and version information are not
 // printed in the console.
 func WithSilence() Option {
 	return func(app *App) {
 		app.silence = true
-	}
-}
-
-// WithNoVersion set the application does not provide version flag.
-func WithNoVersion() Option {
-	return func(a *App) {
-		a.noVersion = true
 	}
 }
 
@@ -81,14 +80,15 @@ func WithNoConfig() Option {
 	}
 }
 
-// WithValidArgs set the validation function to valid non-flag arguments.
+// WithValidArgs set the validation function to valid command arguments.
 func WithValidArgs(args cobra.PositionalArgs) Option {
 	return func(a *App) {
 		a.args = args
 	}
 }
 
-// WithDefaultValidArgs set default validation function to valid non-flag arguments.
+// WithDefaultValidArgs set default validation function to valid command arguments.
+// It's only used for no arguments command.
 func WithDefaultValidArgs() Option {
 	return func(a *App) {
 		a.args = func(cmd *cobra.Command, args []string) error {
@@ -111,6 +111,7 @@ func NewApp(name string, basename string, opts ...Option) *App {
 		basename: basename,
 	}
 
+	// Set options
 	for _, o := range opts {
 		o(a)
 	}
@@ -120,11 +121,13 @@ func NewApp(name string, basename string, opts ...Option) *App {
 	return a
 }
 
+// buildCommand is used to set cobra command and flags.
 func (a *App) buildCommand() {
 	cmd := cobra.Command{
 		Use:           a.basename,
 		Short:         a.name,
 		Long:          a.description,
+		Version:       a.version,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Args:          a.args,
@@ -135,10 +138,13 @@ func (a *App) buildCommand() {
 	cmd.Flags().SortFlags = true
 	initFlag(cmd.Flags())
 
+	// Add sub command
 	if len(a.commands) > 0 {
 		for _, command := range a.commands {
 			cmd.AddCommand(command.CobraCommand())
 		}
+
+		// Add "help" sub command
 		cmd.SetHelpCommand(helpCommand(a.name))
 	}
 
@@ -147,7 +153,7 @@ func (a *App) buildCommand() {
 		namedFlagSets = a.options.Flags()
 		fs := cmd.Flags()
 		for _, f := range namedFlagSets.FlagSets {
-			fs.AddFlagSet(f)
+			fs.AddFlagSet(f) // add flag
 		}
 
 		usageFmt := "Usage:\n  %s\n"
@@ -163,9 +169,7 @@ func (a *App) buildCommand() {
 		})
 	}
 
-	if !a.noVersion {
-		//verflag.AddFlags(namedFlagSets.FlagSet("global"))
-	}
+	// Add "--config" flag
 	if !a.noConfig {
 		addConfigFlag(a.basename, namedFlagSets.FlagSet("global"))
 	}
@@ -195,28 +199,27 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 	printWorkingDir()
 	PrintFlag(cmd.Flags())
 
-	if !a.noVersion {
-		// display application version information
-	}
-
 	if !a.noConfig {
+		// Bind viper config and command flags
 		if err := viper.BindPFlags(cmd.Flags()); err != nil {
 			return err
 		}
+
+		// Store viper config to CliOptions struct
 		if err := viper.Unmarshal(a.options); err != nil {
 			return err
 		}
 	}
 
+	// Print some info
 	if !a.silence {
 		log.Infof("%v Starting %s ...", progressMessage, a.name)
-		if !a.noVersion {
-			log.Infof("%v Version: `%s`", progressMessage, version.Get().ToJSON())
-		}
 		if !a.noConfig {
 			log.Infof("%v Config file used: `%s`", progressMessage, viper.ConfigFileUsed())
 		}
 	}
+
+	// Complete/validate/print config options
 	if a.options != nil {
 		if err := a.applyOptionRules(); err != nil {
 			return err
@@ -231,16 +234,19 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 }
 
 func (a *App) applyOptionRules() error {
+	// Complete config options
 	if completeableOptions, ok := a.options.(CompleteableOptions); ok {
 		if err := completeableOptions.Complete(); err != nil {
 			return err
 		}
 	}
 
+	// Validate config options
 	if errs := a.options.Validate(); len(errs) != 0 {
 		return errs[0]
 	}
 
+	// Print config options
 	if printableOptions, ok := a.options.(PrintableOptions); ok && !a.silence {
 		log.Infof("%v Config: `%s`", progressMessage, printableOptions.String())
 	}

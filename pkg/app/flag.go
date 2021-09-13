@@ -11,6 +11,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
+// initFlag is used to init flagset.
 func initFlag(flags *pflag.FlagSet) {
 	flags.SetNormalizeFunc(WordSepNormalizeFunc)
 	flags.AddGoFlagSet(goflag.CommandLine)

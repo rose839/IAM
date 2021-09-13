@@ -74,8 +74,11 @@ func (c *Command) CobraCommand() *cobra.Command {
 	}
 
 	cmd.SetOut(os.Stdout)
-	cmd.Flags().SortFlags = false
+	cmd.SetErr(os.Stderr)
+	cmd.Flags().SortFlags = true
+	initFlag(cmd.Flags())
 
+	// Add sub commands
 	if len(c.commands) > 0 {
 		for _, command := range c.commands {
 			cmd.AddCommand(command.CobraCommand())
@@ -86,11 +89,13 @@ func (c *Command) CobraCommand() *cobra.Command {
 		cmd.Run = c.runCommand
 	}
 
+	// Add flagset to command
 	if c.options != nil {
 		for _, f := range c.options.Flags().FlagSets {
 			cmd.Flags().AddFlagSet(f)
 		}
 	}
+
 	addHelpCommandFlag(c.usage, cmd.Flags())
 
 	return cmd
