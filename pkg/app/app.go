@@ -7,6 +7,8 @@ import (
 	"github.com/fatih/color"
 	"github.com/marmotedu/log"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
+	"k8s.io/client-go/pkg/version"
 )
 
 var progressMessage = color.GreenString("==>")
@@ -14,13 +16,14 @@ var progressMessage = color.GreenString("==>")
 // App is the main structure of a cli app, it's recommanded
 // that an app be created with the app.NewApp func.
 type App struct {
-	basename    string
+	basename    string  // app name
 	name        string  // short description
 	description string  // long description
 	runFunc     RunFunc // user-defined main func
-	slience     bool
+	silence     bool
 	noVersion   bool
 	noConfig    bool
+	options     CliOptions           // user-defined struct of cli options
 	commands    []*Command           // sub command
 	args        cobra.PositionalArgs // validation func of positional arguments(arg is belong to command, not flag)
 	cmd         *cobra.Command       // root command
@@ -29,6 +32,14 @@ type App struct {
 // Option defines optional parameters for initializing the application
 // structure.
 type Option func(*App)
+
+// WithOptions to open the application's function to read from the command line
+// or read parameters from the configuration file.
+func WithOptions(opt CliOptions) Option {
+	return func(a *App) {
+		a.options = opt
+	}
+}
 
 // RunFunc defines the application's startup callback function.
 type RunFunc func(basename string) error
@@ -52,7 +63,7 @@ func WithDescription(desc string) Option {
 // printed in the console.
 func WithSilence() Option {
 	return func(app *App) {
-		app.slience = true
+		app.silence = true
 	}
 }
 
@@ -124,6 +135,41 @@ func (a *App) buildCommand() {
 	cmd.Flags().SortFlags = true
 	initFlag(cmd.Flags())
 
+	if len(a.commands) > 0 {
+		for _, command := range a.commands {
+			cmd.AddCommand(command.CobraCommand())
+		}
+		cmd.SetHelpCommand(helpCommand(a.name))
+	}
+
+	var namedFlagSets NamedFlagSets
+	if a.options != nil {
+		namedFlagSets = a.options.Flags()
+		fs := cmd.Flags()
+		for _, f := range namedFlagSets.FlagSets {
+			fs.AddFlagSet(f)
+		}
+
+		usageFmt := "Usage:\n  %s\n"
+		cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
+			fmt.Fprintf(cmd.OutOrStdout(), "%s\n\n"+usageFmt, cmd.Long, cmd.UseLine())
+			PrintSections(cmd.OutOrStdout(), namedFlagSets, 40)
+		})
+		cmd.SetUsageFunc(func(cmd *cobra.Command) error {
+			fmt.Fprintf(cmd.OutOrStderr(), usageFmt, cmd.UseLine())
+			PrintSections(cmd.OutOrStderr(), namedFlagSets, 40)
+
+			return nil
+		})
+	}
+
+	if !a.noVersion {
+		//verflag.AddFlags(namedFlagSets.FlagSet("global"))
+	}
+	if !a.noConfig {
+		addConfigFlag(a.basename, namedFlagSets.FlagSet("global"))
+	}
+
 	if a.runFunc != nil {
 		cmd.RunE = a.runCommand
 	}
@@ -144,12 +190,59 @@ func (a *App) Command() *cobra.Command {
 	return a.cmd
 }
 
+// Command main func
 func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 	printWorkingDir()
 	PrintFlag(cmd.Flags())
 
+	if !a.noVersion {
+		// display application version information
+	}
+
+	if !a.noConfig {
+		if err := viper.BindPFlags(cmd.Flags()); err != nil {
+			return err
+		}
+		if err := viper.Unmarshal(a.options); err != nil {
+			return err
+		}
+	}
+
+	if !a.silence {
+		log.Infof("%v Starting %s ...", progressMessage, a.name)
+		if !a.noVersion {
+			log.Infof("%v Version: `%s`", progressMessage, version.Get().ToJSON())
+		}
+		if !a.noConfig {
+			log.Infof("%v Config file used: `%s`", progressMessage, viper.ConfigFileUsed())
+		}
+	}
+	if a.options != nil {
+		if err := a.applyOptionRules(); err != nil {
+			return err
+		}
+	}
+
 	if a.runFunc != nil {
 		return a.runFunc(a.basename)
+	}
+
+	return nil
+}
+
+func (a *App) applyOptionRules() error {
+	if completeableOptions, ok := a.options.(CompleteableOptions); ok {
+		if err := completeableOptions.Complete(); err != nil {
+			return err
+		}
+	}
+
+	if errs := a.options.Validate(); len(errs) != 0 {
+		return errs[0]
+	}
+
+	if printableOptions, ok := a.options.(PrintableOptions); ok && !a.silence {
+		log.Infof("%v Config: `%s`", progressMessage, printableOptions.String())
 	}
 
 	return nil
