@@ -36,6 +36,7 @@ func helpCommand(name string) *cobra.Command {
 
 // addHelpFlag adds flags for a specific application to the specified FlagSet
 // object.
+//lint:ignore U1000 ignore unused func
 func addHelpFlag(name string, fs *pflag.FlagSet) {
 	fs.BoolP(flagHelp, flagHelpShorthand, false, fmt.Sprintf("Help for %s.", name))
 }

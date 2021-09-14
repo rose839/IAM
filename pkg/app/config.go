@@ -46,6 +46,7 @@ func addConfigFlag(basename string, fs *pflag.FlagSet) {
 	})
 }
 
+//lint:ignore U1000 ignore unused func
 func printConfig() {
 	keys := viper.AllKeys()
 	if len(keys) > 0 {
