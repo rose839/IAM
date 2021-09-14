@@ -49,7 +49,7 @@ func (posixSignalManager *PosixSignalManager) Start(gs shutdown.GSInterface) err
 
 		<-c
 
-		gs.StartShutdown()
+		gs.StartShutdown(posixSignalManager)
 	}()
 
 	return nil
