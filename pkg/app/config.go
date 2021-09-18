@@ -16,6 +16,7 @@ const configFlagName = "config"
 var cfgFile string
 
 func init() {
+	// add "-c" flag to default flagset
 	pflag.StringVarP(&cfgFile, configFlagName, "c", cfgFile, "Read configuration from specified `FILE`, "+
 		"support JSON, TOML, YAML, HCL, or Java properties formats.")
 }
@@ -23,14 +24,14 @@ func init() {
 // addConfigFlag adds flags for a specific server to the specified FlagSet
 // object.
 func addConfigFlag(basename string, fs *pflag.FlagSet) {
-	// Add "--config" flag to specified flagset
+	// Add "--config" flag from default flagset to specified flagset
 	fs.AddFlag(pflag.Lookup(configFlagName))
 
 	viper.AutomaticEnv()
 	viper.SetEnvPrefix(strings.Replace(strings.ToUpper(basename), "-", "_", -1))
 	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
 
-	// Read config from config file by viper
+	// set cobra initial func: read config from config file by viper
 	cobra.OnInitialize(func() {
 		if cfgFile != "" {
 			viper.SetConfigFile(cfgFile)

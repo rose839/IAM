@@ -59,6 +59,7 @@ func PrintSections(w io.Writer, fss NamedFlagSets, cols int) {
 			continue
 		}
 
+		// New a copy of original flagset
 		wideFS := pflag.NewFlagSet("", pflag.ExitOnError)
 		wideFS.AddFlagSet(fs)
 

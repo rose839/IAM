@@ -22,7 +22,7 @@ type App struct {
 	runFunc     RunFunc              // user-defined main func
 	silence     bool                 // silence mode at startup phase
 	noConfig    bool                 // whether add "--config" flag
-	options     CliOptions           // user-defined struct of cli options, used to store config and register flag
+	options     CliOptions           // app-defined struct of cli options, used to store config and register flag
 	commands    []*Command           // sub command
 	args        cobra.PositionalArgs // validation func of positional arguments(arg is belong to command, not flag)
 	cmd         *cobra.Command       // root command
@@ -123,8 +123,9 @@ func NewApp(name string, basename string, opts ...Option) *App {
 
 // buildCommand is used to set cobra command and flags.
 func (a *App) buildCommand() {
+	// Create root command
 	cmd := cobra.Command{
-		Use:           a.basename,
+		Use:           a.basename, // Add basename(app name) to one-line usage
 		Short:         a.name,
 		Long:          a.description,
 		Version:       a.version,
@@ -133,12 +134,12 @@ func (a *App) buildCommand() {
 		Args:          a.args,
 	}
 
-	cmd.SetOut(os.Stdout)
-	cmd.SetErr(os.Stderr)
-	cmd.Flags().SortFlags = true
+	cmd.SetOut(os.Stdout)        // Set destination for usage message
+	cmd.SetErr(os.Stderr)        // Set destination for cmd error message
+	cmd.Flags().SortFlags = true // Sort flag by flag name
 	initFlag(cmd.Flags())
 
-	// Add sub command
+	// Add sub command to root command
 	if len(a.commands) > 0 {
 		for _, command := range a.commands {
 			cmd.AddCommand(command.CobraCommand())
@@ -157,6 +158,8 @@ func (a *App) buildCommand() {
 		}
 
 		usageFmt := "Usage:\n  %s\n"
+
+		// set help func, called at "-h" flag
 		cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 			fmt.Fprintf(cmd.OutOrStdout(), "%s\n\n"+usageFmt, cmd.Long, cmd.UseLine())
 			PrintSections(cmd.OutOrStdout(), namedFlagSets, 40)

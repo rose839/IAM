@@ -27,8 +27,8 @@ func helpCommand(name string) *cobra.Command {
 				c.Printf("Unknown help topic %#q\n", args)
 				_ = c.Root().Usage()
 			} else {
-				cmd.InitDefaultHelpFlag() // make possible 'help' flag to be shown
-				_ = cmd.Help()            // call command helpFunc
+				cmd.InitDefaultHelpFlag() // make possible 'help' flag to be shown if this sub command no 'help' flag
+				_ = cmd.Help()            // call this sub command's helpFunc
 			}
 		},
 	}
