@@ -22,6 +22,7 @@ type App struct {
 	runFunc     RunFunc              // user-defined main func
 	silence     bool                 // silence mode at startup phase
 	noConfig    bool                 // whether add "--config" flag
+	noVersion   bool                 // whether the application does not provide version flag
 	options     CliOptions           // app-defined struct of cli options, used to store config and register flag
 	commands    []*Command           // sub command
 	args        cobra.PositionalArgs // validation func of positional arguments(arg is belong to command, not flag)
@@ -80,6 +81,13 @@ func WithNoConfig() Option {
 	}
 }
 
+// WithNoVersion set the application does not provide version flag.
+func WithNoVersion() Option {
+	return func(a *App) {
+		a.noVersion = true
+	}
+}
+
 // WithValidArgs set the validation function to valid command arguments.
 func WithValidArgs(args cobra.PositionalArgs) Option {
 	return func(a *App) {
@@ -125,7 +133,7 @@ func NewApp(name string, basename string, opts ...Option) *App {
 func (a *App) buildCommand() {
 	// Create root command
 	cmd := cobra.Command{
-		Use:           a.basename, // Add basename(app name) to one-line usage
+		Use:           FormatBaseName(a.basename), // Add basename(app name) to one-line usage
 		Short:         a.name,
 		Long:          a.description,
 		Version:       a.version,
@@ -177,6 +185,7 @@ func (a *App) buildCommand() {
 		addConfigFlag(a.basename, namedFlagSets.FlagSet("global"))
 	}
 
+	// set main app run func
 	if a.runFunc != nil {
 		cmd.RunE = a.runCommand
 	}
@@ -197,7 +206,7 @@ func (a *App) Command() *cobra.Command {
 	return a.cmd
 }
 
-// Command main func
+// Command main func, will call user-defined run func.
 func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 	printWorkingDir()
 	PrintFlag(cmd.Flags())

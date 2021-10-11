@@ -8,5 +8,5 @@ for the api objects which include users, policies, secrets, and
 others. The API Server services REST operations to do the api objects management.`
 
 func NewApp(basename string) *app.App {
-
+	return NewApp("hello")
 }
