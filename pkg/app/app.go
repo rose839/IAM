@@ -18,7 +18,6 @@ type App struct {
 	basename    string               // app name
 	name        string               // short description
 	description string               // long description
-	version     string               // app version
 	runFunc     RunFunc              // user-defined main func
 	silence     bool                 // silence mode at startup phase
 	noConfig    bool                 // whether add "--config" flag
@@ -34,7 +33,9 @@ type App struct {
 type Option func(*App)
 
 // WithOptions to open the application's function to read from the command line
-// or read parameters from the configuration file.
+// or read parameters from the configuration file for every app.
+// Application shoule provide an user-defined structure that implements CliOptions to
+// give cli flag and receive cli params.
 func WithOptions(opt CliOptions) Option {
 	return func(a *App) {
 		a.options = opt
@@ -55,13 +56,6 @@ func WithRunFunc(run RunFunc) Option {
 func WithDescription(desc string) Option {
 	return func(app *App) {
 		app.description = desc
-	}
-}
-
-// WithVersion set the application does not provide version flag.
-func WithVersion(version string) Option {
-	return func(a *App) {
-		a.version = version
 	}
 }
 
@@ -88,7 +82,7 @@ func WithNoVersion() Option {
 	}
 }
 
-// WithValidArgs set the validation function to valid command arguments.
+// WithValidArgs set the validation function to valid root command arguments.
 func WithValidArgs(args cobra.PositionalArgs) Option {
 	return func(a *App) {
 		a.args = args
@@ -136,7 +130,6 @@ func (a *App) buildCommand() {
 		Use:           FormatBaseName(a.basename), // Add basename(app name) to one-line usage
 		Short:         a.name,
 		Long:          a.description,
-		Version:       a.version,
 		SilenceUsage:  true,
 		SilenceErrors: true,
 		Args:          a.args,
