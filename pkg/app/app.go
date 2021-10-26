@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/rose839/IAM/pkg/term"
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -159,15 +160,21 @@ func (a *App) buildCommand() {
 		}
 
 		usageFmt := "Usage:\n  %s\n"
+		termWith, _, err := term.TerminalSize(cmd.OutOrStdout())
+		if err != nil {
+			log.Fatal(err)
+		}
 
 		// set help func, called at "-h" flag
 		cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 			fmt.Fprintf(cmd.OutOrStdout(), "%s\n\n"+usageFmt, cmd.Long, cmd.UseLine())
-			PrintSections(cmd.OutOrStdout(), namedFlagSets, 40)
+			PrintSections(cmd.OutOrStdout(), namedFlagSets, termWith)
 		})
+
+		// set usage fuc, called at error occur
 		cmd.SetUsageFunc(func(cmd *cobra.Command) error {
 			fmt.Fprintf(cmd.OutOrStderr(), usageFmt, cmd.UseLine())
-			PrintSections(cmd.OutOrStderr(), namedFlagSets, 40)
+			PrintSections(cmd.OutOrStderr(), namedFlagSets, termWith)
 
 			return nil
 		})
@@ -176,6 +183,11 @@ func (a *App) buildCommand() {
 	// Add "--config" flag
 	if !a.noConfig {
 		addConfigFlag(a.basename, namedFlagSets.FlagSet("global"))
+	}
+
+	// Add "--version" flag
+	if !a.noVersion {
+
 	}
 
 	// set main app run func
@@ -203,6 +215,9 @@ func (a *App) Command() *cobra.Command {
 func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 	printWorkingDir()
 	PrintFlag(cmd.Flags())
+	if !a.noVersion {
+		// display application version information
+	}
 
 	if !a.noConfig {
 		// Bind viper config and command flags
@@ -219,6 +234,9 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 	// Print some info
 	if !a.silence {
 		log.Infof("%v Starting %s ...", progressMessage, a.name)
+		if !a.noVersion {
+
+		}
 		if !a.noConfig {
 			log.Infof("%v Config file used: `%s`", progressMessage, viper.ConfigFileUsed())
 		}
@@ -231,6 +249,7 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 		}
 	}
 
+	// Call user-defined main func
 	if a.runFunc != nil {
 		return a.runFunc(a.basename)
 	}
