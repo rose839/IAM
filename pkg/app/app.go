@@ -153,6 +153,7 @@ func (a *App) buildCommand() {
 
 	var namedFlagSets NamedFlagSets
 	if a.options != nil {
+		// set app-defined grouped flagset
 		namedFlagSets = a.options.Flags()
 		fs := cmd.Flags()
 		for _, f := range namedFlagSets.FlagSets {
@@ -160,21 +161,22 @@ func (a *App) buildCommand() {
 		}
 
 		usageFmt := "Usage:\n  %s\n"
-		termWith, _, err := term.TerminalSize(cmd.OutOrStdout())
+		termWidth, _, err := term.TerminalSize(cmd.OutOrStdout())
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// set help func, called at "-h" flag
+		// set help func, called at "-h/--help" flag
 		cmd.SetHelpFunc(func(cmd *cobra.Command, args []string) {
 			fmt.Fprintf(cmd.OutOrStdout(), "%s\n\n"+usageFmt, cmd.Long, cmd.UseLine())
-			PrintSections(cmd.OutOrStdout(), namedFlagSets, termWith)
+			PrintSections(cmd.OutOrStdout(), namedFlagSets, termWidth)
 		})
 
-		// set usage fuc, called at error occur
+		// set usage func, called at error input,
+		// could shut down output usage by set SilenceUsage: true
 		cmd.SetUsageFunc(func(cmd *cobra.Command) error {
 			fmt.Fprintf(cmd.OutOrStderr(), usageFmt, cmd.UseLine())
-			PrintSections(cmd.OutOrStderr(), namedFlagSets, termWith)
+			PrintSections(cmd.OutOrStderr(), namedFlagSets, termWidth)
 
 			return nil
 		})
@@ -220,12 +222,12 @@ func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 	}
 
 	if !a.noConfig {
-		// Bind viper config and command flags
+		// Bind viper config with command flags
 		if err := viper.BindPFlags(cmd.Flags()); err != nil {
 			return err
 		}
 
-		// Store viper config to CliOptions struct
+		// Store viper config to app-defined CliOptions struct
 		if err := viper.Unmarshal(a.options); err != nil {
 			return err
 		}

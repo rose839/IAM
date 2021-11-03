@@ -3,9 +3,12 @@ package app
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/gosuri/uitable"
+	"github.com/mitchellh/go-homedir"
+	"github.com/rose839/IAM/pkg/homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
@@ -37,6 +40,11 @@ func addConfigFlag(basename string, fs *pflag.FlagSet) {
 			viper.SetConfigFile(cfgFile)
 		} else {
 			viper.AddConfigPath(".")
+
+			if names := strings.Split(basename, "-"); len(names) > 0 {
+				viper.AddConfigPath(filepath.Join(homedir.HomeDir(), "."+names[0]))
+			}
+
 			viper.SetConfigName(basename)
 		}
 
