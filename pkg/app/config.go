@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/gosuri/uitable"
-	"github.com/mitchellh/go-homedir"
 	"github.com/rose839/IAM/pkg/homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
