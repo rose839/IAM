@@ -2,6 +2,8 @@ package cuslog
 
 import (
 	"bytes"
+	"runtime"
+	"strings"
 	"time"
 )
 
@@ -20,9 +22,9 @@ type Entry struct {
 
 func entry(logger *logger) *Entry {
 	return &Entry{
-		logger: logger, 
-		Buffer: new(bytes.Buffer), 
-		Map: make(map[string]interface{}, 5)
+		logger: logger,
+		Buffer: new(bytes.Buffer),
+		Map:    make(map[string]interface{}, 5),
 	}
 }
 
@@ -36,7 +38,7 @@ func (e *Entry) write(level Level, format string, args ...interface{}) {
 	e.Format = format
 	e.Args = args
 
-	if !e.logger.opt.disabledCaller {
+	if !e.logger.opt.disableCaller {
 		if pc, file, line, ok := runtime.Caller(2); !ok {
 			e.File = "???"
 			e.Func = "???"

@@ -40,10 +40,10 @@ const (
 )
 
 // log level string name mapping
-var LevelNameMapping map[Level]string {
+var LevelNameMapping = map[Level]string{
 	DebugLevel: "DEBUG",
-	InfoLevel: "INFO",
-	WarnLevel: "WARN",
+	InfoLevel:  "INFO",
+	WarnLevel:  "WARN",
 	ErrorLevel: "ERROR",
 	PanicLevel: "PANIC",
 	FatalLevel: "FATAL",
@@ -84,11 +84,11 @@ func (l *Level) UnmarshalText(text []byte) error {
 
 // log options
 type options struct {
-	output io.Writer
-	level Level
-	stdLevel Level
-	formatter Formatter
-	disabledCaller bool
+	output        io.Writer
+	level         Level
+	stdLevel      Level
+	formatter     Formatter
+	disableCaller bool
 }
 
 type Option func(*options)

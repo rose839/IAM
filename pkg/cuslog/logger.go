@@ -48,7 +48,8 @@ func (l *logger) Writer() io.Writer {
 }
 
 func (l *logger) Write(data []byte) (int, error) {
-	return l.entry().write(l.opt.stdLevel, FmtEmptySeparate, *(*string)(unsafe.Pointer(&data)))
+	l.entry().write(l.opt.stdLevel, FmtEmptySeparate, *(*string)(unsafe.Pointer(&data)))
+	return 0, nil
 }
 
 func (l *logger) entry() *Entry {
