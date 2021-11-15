@@ -6,6 +6,7 @@ require (
 	github.com/fatih/color v1.7.0
 	github.com/gosuri/uitable v0.0.4
 	github.com/json-iterator/go v1.1.11
+	github.com/marmotedu/go-gitlint v0.0.0-20200928173219-dbbc4b98928c // indirect
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
 	github.com/sirupsen/logrus v1.8.1
