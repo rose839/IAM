@@ -50,16 +50,21 @@ func (coder ErrCode) HTTPStatus() int {
 	return coder.HTTP
 }
 
-func register(code int, httpStatus int, message string, ref string) {
+func register(code int, httpStatus int, message string, refs ...string) {
 	if found, _ := gubrak.Includes([]int{200, 400, 401, 403, 404, 500}, httpStatus); !found {
 		panic("http code not in `200, 400, 401, 403, 404, 500`")
+	}
+
+	var reference string
+	if len(refs) > 0 {
+		reference = refs[0]
 	}
 
 	coder := &ErrCode{
 		C:    code,
 		HTTP: httpStatus,
 		Ext:  message,
-		Ref:  ref,
+		Ref:  reference,
 	}
 
 	errors.MustRegister(coder)

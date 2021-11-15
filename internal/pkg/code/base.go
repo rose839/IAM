@@ -22,6 +22,12 @@ const (
 	ErrPageNotFound
 )
 
+// common: database errors.
+const (
+	// ErrDatabase - 500: Database error.
+	ErrDatabase int = iota + 100101
+)
+
 // Common: authorization and authentication errors.
 const (
 	// ErrEncrypt - 401: Error occurred while encrypting the user password.
