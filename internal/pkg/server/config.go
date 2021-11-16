@@ -2,10 +2,15 @@ package server
 
 import (
 	"net"
+	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rose839/IAM/pkg/homedir"
+	log "github.com/sirupsen/logrus"
+	"github.com/spf13/viper"
 )
 
 const (
@@ -97,3 +102,43 @@ func (c *Config) Complete() CompletedConfig {
 	return CompletedConfig{c}
 }
 
+// New returns a new instance of GenericAPIServer from the given config.
+func (c *CompletedConfig) New() *GenericAPIServer {
+	s := &GenericAPIServer{
+		SecureServingInfo:   c.SecureServing,
+		InsecureServingInfo: c.InsecureServing,
+		mode:                c.Mode,
+		healthz:             c.Healthz,
+		enableMetrics:       c.EnableMetrics,
+		enableProfiling:     c.EnableProfiling,
+		middlewares:         c.Middlewares,
+		Engine:              gin.New(),
+	}
+
+	initGenericAPIServer(s)
+
+	return s
+}
+
+// LoadConfig reads in config file and ENV variables if set.
+func LoadConfig(cfg string, defaultName string) {
+	if cfg != "" {
+		viper.SetConfigFile(cfg)
+	} else {
+		viper.AddConfigPath(".")
+		viper.AddConfigPath("/etc/iam")
+		viper.AddConfigPath(filepath.Join(homedir.HomeDir(), RecommendedHomeDir))
+		viper.SetConfigName(defaultName)
+	}
+
+	// Use config file from the flag
+	viper.SetConfigType("yaml")              // set the type of the config file to yaml
+	viper.AutomaticEnv()                     // read in environment variables that matchs
+	viper.SetEnvPrefix(RecommendedEnvPrefix) // set ENVIRONMENT variables prefix to IAM
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_", "-", "_"))
+
+	// If a config file is found, read it in
+	if err := viper.ReadInConfig(); err != nil {
+		log.Warnf("WARNING: viper failed to discover and load the configuration file: %s", err.Error())
+	}
+}
