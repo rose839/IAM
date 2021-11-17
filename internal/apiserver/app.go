@@ -30,12 +30,11 @@ func run(opts *options.Options) app.RunFunc {
 		// init log
 
 		// create app config
-		_, err := config.CreateConfigFromOptions(opts)
+		cfg, err := config.CreateConfigFromOptions(opts)
 		if err != nil {
 			return err
 		}
 
-		//return Run(cfg)
-		return nil
+		return Run(cfg)
 	}
 }

@@ -13,6 +13,7 @@ type Options struct {
 	GenericServerRunOptions *genericoptions.ServerRunOptions       `json:"server"   mapstructure:"server"`
 	InsecureServing         *genericoptions.InsecureServingOptions `json:"insecure" mapstructure:"insecure"`
 	SecureServing           *genericoptions.SecureServingOptions   `json:"secure"   mapstructure:"secure"`
+	GRPCOptions             *genericoptions.GRPCOptions
 }
 
 // NewOptions creates a new Options object with default parameters.
@@ -21,6 +22,7 @@ func NewOptions() *Options {
 		GenericServerRunOptions: genericoptions.NewServerRunOptions(),
 		InsecureServing:         genericoptions.NewInsecureServingOptions(),
 		SecureServing:           genericoptions.NewSecureServingOptions(),
+		GRPCOptions:             genericoptions.NewGRPCOptions(),
 	}
 
 	return o
@@ -36,6 +38,7 @@ func (o *Options) Flags() (fss cliflag.NamedFlagSets) {
 	o.GenericServerRunOptions.AddFlags(fss.FlagSet("generic"))
 	o.InsecureServing.AddFlags(fss.FlagSet("insecure serving"))
 	o.SecureServing.AddFlags(fss.FlagSet("secure serving"))
+	o.GRPCOptions.AddFlags(fss.FlagSet("grpc"))
 
 	return fss
 }

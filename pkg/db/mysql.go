@@ -23,7 +23,7 @@ type Options struct {
 }
 
 // New create a new gorm db instance with the given options.
-func New(opts Options) (*gorm.DB, error) {
+func New(opts *Options) (*gorm.DB, error) {
 	dsn := fmt.Sprintf(`%s:%s@tcp(%s)/%s?charset=utf8&parseTime=%t&loc=%s`,
 		opts.Username,
 		opts.Password,
