@@ -92,6 +92,7 @@ func NewConfig() *Config {
 }
 
 // CompletedConfig is the completed configuration for GenericAPIServer.
+// GenericAPIServer must be created by completed config.
 type CompletedConfig struct {
 	*Config
 }

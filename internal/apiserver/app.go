@@ -16,6 +16,7 @@ func NewApp(basename string) *app.App {
 	application := app.NewApp(
 		"IAM API Server",
 		basename,
+		app.WithOptions(opts),
 		app.WithDescription(commandDesc),
 		app.WithDefaultValidArgs(),
 		app.WithRunFunc(run(opts)),
@@ -26,11 +27,15 @@ func NewApp(basename string) *app.App {
 
 func run(opts *options.Options) app.RunFunc {
 	return func(basename string) error {
-		cfg, err := config.CreateConfigFromOptions(opts)
+		// init log
+
+		// create app config
+		_, err := config.CreateConfigFromOptions(opts)
 		if err != nil {
 			return err
 		}
 
-		return Run(cfg)
+		//return Run(cfg)
+		return nil
 	}
 }
