@@ -5,6 +5,7 @@ import (
 	"net"
 	"path"
 
+	"github.com/rose839/IAM/internal/pkg/server"
 	"github.com/spf13/pflag"
 )
 
@@ -57,6 +58,21 @@ func NewSecureServingOptions() *SecureServingOptions {
 			CertDirectory: "/var/run/iam",
 		},
 	}
+}
+
+// ApplyTo applies the run options to the method receiver and returns self.
+func (s *SecureServingOptions) ApplyTo(c *server.Config) error {
+	// SecureServing is required to serve https
+	c.SecureServing = &server.SecureServingInfo{
+		BindAddress: s.BindAddress,
+		BindPort:    s.BindPort,
+		CertKey: server.CertKey{
+			CertFile: s.ServerCert.CertKey.CertFile,
+			KeyFile:  s.ServerCert.CertKey.KeyFile,
+		},
+	}
+
+	return nil
 }
 
 // Validate is used to parse and validate the parameters entered by the user at

@@ -104,7 +104,7 @@ func (c *Config) Complete() CompletedConfig {
 }
 
 // New returns a new instance of GenericAPIServer from the given config.
-func (c *CompletedConfig) New() *GenericAPIServer {
+func (c CompletedConfig) New() (*GenericAPIServer, error) {
 	s := &GenericAPIServer{
 		SecureServingInfo:   c.SecureServing,
 		InsecureServingInfo: c.InsecureServing,
@@ -118,7 +118,7 @@ func (c *CompletedConfig) New() *GenericAPIServer {
 
 	initGenericAPIServer(s)
 
-	return s
+	return s, nil
 }
 
 // LoadConfig reads in config file and ENV variables if set.
