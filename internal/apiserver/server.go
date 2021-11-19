@@ -9,12 +9,14 @@ import (
 	"github.com/rose839/IAM/pkg/shutdown/shutdownmanagers/posixsignal"
 )
 
+// apiServer represent iam apiserver runtime instance.
 type apiServer struct {
-	gs               *shutdown.GracefulShutdown
-	genericAPIServer *genericapiserver.GenericAPIServer
-	gRPCAPIServer    *grpcAPIServer
+	gs               *shutdown.GracefulShutdown         // graceful shutdown instance
+	genericAPIServer *genericapiserver.GenericAPIServer // rest api server
+	gRPCAPIServer    *grpcAPIServer                     // grpc server
 }
 
+// preparedAPIServer represent an iam apiserver runtime instance that is prepared.
 type preparedAPIServer struct {
 	*apiServer
 }
@@ -37,6 +39,7 @@ func buildGenericConfig(cfg *config.Config) (genericConfig *genericapiserver.Con
 	if err = cfg.InsecureServing.ApplyTo(genericConfig); err != nil {
 		return
 	}
+	return
 }
 
 func createAPIServer(cfg *config.Config) (*apiServer, error) {
@@ -62,6 +65,8 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 }
 
 func (s *apiServer) PrepareRun() preparedAPIServer {
+	initRouter(s.genericAPIServer.Engine)
+
 	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
 
 		// close rest api server
