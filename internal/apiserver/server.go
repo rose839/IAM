@@ -21,6 +21,7 @@ type preparedAPIServer struct {
 	*apiServer
 }
 
+// Create rest api server config from app config.
 func buildGenericConfig(cfg *config.Config) (genericConfig *genericapiserver.Config, err error) {
 	genericConfig = genericapiserver.NewConfig()
 
@@ -42,6 +43,7 @@ func buildGenericConfig(cfg *config.Config) (genericConfig *genericapiserver.Con
 	return
 }
 
+// Create iam apiserver instance.
 func createAPIServer(cfg *config.Config) (*apiServer, error) {
 	gs := shutdown.New()
 	gs.AddShutdownManager(posixsignal.NewPosixSignalManager())
@@ -65,6 +67,7 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 }
 
 func (s *apiServer) PrepareRun() preparedAPIServer {
+	// init rest api server router
 	initRouter(s.genericAPIServer.Engine)
 
 	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
