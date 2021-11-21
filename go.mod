@@ -3,6 +3,7 @@ module github.com/rose839/IAM
 go 1.16
 
 require (
+	github.com/appleboy/gin-jwt/v2 v2.7.0
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/fatih/color v1.7.0
 	github.com/gin-gonic/gin v1.7.4
