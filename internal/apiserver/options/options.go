@@ -15,6 +15,7 @@ type Options struct {
 	SecureServing           *genericoptions.SecureServingOptions   `json:"secure"   mapstructure:"secure"`
 	GRPCOptions             *genericoptions.GRPCOptions            `json:"grpc"     mapstructure:"grpc"`
 	FeatureOptions          *genericoptions.FeatureOptions         `json:"feature"  mapstructure:"feature"`
+	JwtOptions              *genericoptions.JwtOptions
 }
 
 // NewOptions creates a new Options object with default parameters.
@@ -25,6 +26,7 @@ func NewOptions() *Options {
 		SecureServing:           genericoptions.NewSecureServingOptions(),
 		GRPCOptions:             genericoptions.NewGRPCOptions(),
 		FeatureOptions:          genericoptions.NewFeatureOptions(),
+		JwtOptions:              genericoptions.NewJwtOptions(),
 	}
 
 	return o
@@ -42,6 +44,7 @@ func (o *Options) Flags() (fss cliflag.NamedFlagSets) {
 	o.SecureServing.AddFlags(fss.FlagSet("secure serving"))
 	o.GRPCOptions.AddFlags(fss.FlagSet("grpc"))
 	o.FeatureOptions.AddFlags(fss.FlagSet("features"))
+	o.JwtOptions.AddFlags(fss.FlagSet("jwt"))
 
 	return fss
 }
@@ -59,6 +62,13 @@ func (o *Options) Complete() error {
 // Validate checks Options and return a slice of found errs.
 func (o *Options) Validate() []error {
 	var errs []error
+
+	errs = append(errs, o.GenericServerRunOptions.Validate()...)
+	errs = append(errs, o.InsecureServing.Validate()...)
+	errs = append(errs, o.SecureServing.Validate()...)
+	errs = append(errs, o.GRPCOptions.Validate()...)
+	errs = append(errs, o.FeatureOptions.Validate()...)
+	errs = append(errs, o.JwtOptions.Validate()...)
 
 	return errs
 }
