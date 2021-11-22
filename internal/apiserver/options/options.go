@@ -16,6 +16,7 @@ type Options struct {
 	GRPCOptions             *genericoptions.GRPCOptions            `json:"grpc"     mapstructure:"grpc"`
 	FeatureOptions          *genericoptions.FeatureOptions         `json:"feature"  mapstructure:"feature"`
 	JwtOptions              *genericoptions.JwtOptions
+	MySQLOptions            *genericoptions.MySQLOptions
 }
 
 // NewOptions creates a new Options object with default parameters.
@@ -27,6 +28,7 @@ func NewOptions() *Options {
 		GRPCOptions:             genericoptions.NewGRPCOptions(),
 		FeatureOptions:          genericoptions.NewFeatureOptions(),
 		JwtOptions:              genericoptions.NewJwtOptions(),
+		MySQLOptions:            genericoptions.NewMySQLOptions(),
 	}
 
 	return o
@@ -45,6 +47,7 @@ func (o *Options) Flags() (fss cliflag.NamedFlagSets) {
 	o.GRPCOptions.AddFlags(fss.FlagSet("grpc"))
 	o.FeatureOptions.AddFlags(fss.FlagSet("features"))
 	o.JwtOptions.AddFlags(fss.FlagSet("jwt"))
+	o.MySQLOptions.AddFlags(fss.FlagSet("mysql"))
 
 	return fss
 }
@@ -69,6 +72,7 @@ func (o *Options) Validate() []error {
 	errs = append(errs, o.GRPCOptions.Validate()...)
 	errs = append(errs, o.FeatureOptions.Validate()...)
 	errs = append(errs, o.JwtOptions.Validate()...)
+	errs = append(errs, o.MySQLOptions.Validate()...)
 
 	return errs
 }

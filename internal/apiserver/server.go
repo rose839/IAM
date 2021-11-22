@@ -1,12 +1,16 @@
 package apiserver
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/rose839/IAM/internal/apiserver/config"
+	genericoptions "github.com/rose839/IAM/internal/pkg/options"
 	genericapiserver "github.com/rose839/IAM/internal/pkg/server"
 	"github.com/rose839/IAM/pkg/shutdown"
 	"github.com/rose839/IAM/pkg/shutdown/shutdownmanagers/posixsignal"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 // apiServer represent iam apiserver runtime instance.
@@ -19,6 +23,14 @@ type apiServer struct {
 // preparedAPIServer represent an iam apiserver runtime instance that is prepared.
 type preparedAPIServer struct {
 	*apiServer
+}
+
+// ExtraConfig defines extra configuration for the iam-apiserver.
+type ExtraConfig struct {
+	Addr         string // grpc address
+	MaxMsgSize   int    // max message size
+	ServerCert   genericoptions.GeneratableKeyCert
+	MySQLOptions *genericoptions.MySQLOptions
 }
 
 // Create rest api server config from app config.
@@ -43,6 +55,15 @@ func buildGenericConfig(cfg *config.Config) (genericConfig *genericapiserver.Con
 	return
 }
 
+func buildExtraConfig(cfg *config.Config) (*ExtraConfig, error) {
+	return &ExtraConfig{
+		Addr:         fmt.Sprint("%s:%d", cfg.GRPCOptions.BindAddress, cfg.GRPCOptions.BindPort),
+		MaxMsgSize:   cfg.GRPCOptions.MaxMsgSize,
+		ServerCert:   cfg.SecureServing.ServerCert,
+		MySQLOptions: cfg.MySQLOptions,
+	}, nil
+}
+
 // Create iam apiserver instance.
 func createAPIServer(cfg *config.Config) (*apiServer, error) {
 	gs := shutdown.New()
@@ -53,10 +74,17 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 		return nil, err
 	}
 
+	extraConfig, err := buildExtraConfig(cfg)
+	if err != nil {
+		return nil, err
+	}
+
 	genericServer, err := genericConfig.Complete().New()
 	if err != nil {
 		return nil, err
 	}
+
+	extraConfig.
 
 	server := &apiServer{
 		gs:               gs,
@@ -90,4 +118,27 @@ func (s preparedAPIServer) Run() error {
 	s.genericAPIServer.Run()
 
 	return nil
+}
+
+type completedExtraConfig struct {
+	*ExtraConfig
+}
+
+func (c *ExtraConfig) complete() *completedExtraConfig {
+	if c.Addr == "" {
+		c.Addr = "127.0.0.1:8081"
+	}
+
+	return &completedExtraConfig{c}
+}
+
+// New create a grpcAPIServer instance.
+func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
+	creds, err := credentials.NewServerTLSFromFile(c.ServerCert.CertKey.CertFile, c.ServerCert.CertKey.KeyFile)
+	if err != nil {
+		log.Fatalf("Failed to generate credentials: %s", err.Error())
+	}
+
+	opts := []grpc.ServerOption{grpc.MaxRecvMsgSize(c.MaxMsgSize), grpc.Creds(creds)}
+	grpcServer := grpc.NewServer(opts...)
 }
