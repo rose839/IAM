@@ -141,4 +141,6 @@ func (v *Validator) Validate() error {
 	if err == nil {
 		return nil
 	}
+
+	return err
 }
