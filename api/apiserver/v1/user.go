@@ -5,6 +5,7 @@ import (
 
 	metav1 "github.com/rose839/IAM/api/meta/v1"
 	"github.com/rose839/IAM/pkg/auth"
+	"github.com/rose839/IAM/pkg/idutil"
 	"gorm.io/gorm"
 )
 
@@ -58,7 +59,8 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 
 // AfterCreate run after create database record.
 func (u *User) AfterCreate(tx *gorm.DB) (err error) {
-
+	u.InstanceID = idutil.GetInstanceID(u.ID, "user-")
+	return tx.Save(u).Error
 }
 
 // BeforeUpdate run before update database record.
