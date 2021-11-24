@@ -1,6 +1,9 @@
 package v1
 
-import "time"
+import (
+	"encoding/json"
+	"time"
+)
 
 // TypeMeta describes an individual object in an API response or request
 // with strings representing the type of the object and its API schema version.
@@ -24,9 +27,6 @@ type TypeMeta struct {
 type ListMeta struct {
 	TotalCount int `json:"totalcount,omitempty"`
 }
-
-// Extend defines a new type used to store extended fields.
-type Extend map[string]interface{}
 
 // ObjectMeta is metadata that all persisted resources must have, which includes all objects
 // ObjectMeta is also used by gorm.
@@ -81,4 +81,28 @@ type ObjectMeta struct {
 	// Populated by the system when a graceful deletion is requested.
 	// Read-only.
 	// DeletedAt *time.Time `json:"-" gorm:"column:deletedAt;index:idx_deletedAt"`
+}
+
+// String returns the string format of Extend.
+func (ext Extend) String() string {
+	data, _ := json.Marshal(ext)
+	return string(data)
+}
+
+// Extend defines a new type used to store extended fields.
+type Extend map[string]interface{}
+
+// Merge merge extend fields from extendShadow.
+func (ext Extend) Merge(extendShadow string) Extend {
+	var extend Extend
+
+	// always trust the extendShadow in the database
+	_ = json.Unmarshal([]byte(extendShadow), &extend)
+	for k, v := range extend {
+		if _, ok := ext[k]; !ok {
+			ext[k] = v
+		}
+	}
+
+	return ext
 }
