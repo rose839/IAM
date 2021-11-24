@@ -9,6 +9,9 @@ require (
 	github.com/fatih/color v1.12.0
 	github.com/gin-gonic/gin v1.7.4
 	github.com/go-kit/kit v0.12.0
+	github.com/go-playground/locales v0.13.0
+	github.com/go-playground/universal-translator v0.17.0
+	github.com/go-playground/validator/v10 v10.4.1
 	github.com/gophercloud/gophercloud v0.23.0
 	github.com/gosuri/uitable v0.0.4
 	github.com/json-iterator/go v1.1.12
