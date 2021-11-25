@@ -15,3 +15,12 @@ func (u *User) Validate() field.ErrorList {
 
 	return allErrs
 }
+
+// ValidateUpdate validates that a user object is valid when update.
+// Like User.Validate but not validate password.
+func (u *User) ValidateUpdate() field.ErrorList {
+	val := validation.NewValidator(u)
+	allErrs := val.Validate()
+
+	return allErrs
+}

@@ -83,6 +83,13 @@ type ObjectMeta struct {
 	// DeletedAt *time.Time `json:"-" gorm:"column:deletedAt;index:idx_deletedAt"`
 }
 
+// ListOptions is the query options to a standard REST list call.
+type ListOption struct {
+	TypeMeta `json:",inline"`
+
+	
+}
+
 // String returns the string format of Extend.
 func (ext Extend) String() string {
 	data, _ := json.Marshal(ext)
