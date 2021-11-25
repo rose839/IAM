@@ -9,6 +9,7 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	validator "github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/translations/en"
+	"github.com/rose839/pkg/validation/field"
 )
 
 const (
@@ -136,11 +137,23 @@ func validateName(fl validator.FieldLevel) bool {
 // Validate validates config for errors and returns an error (it can be casted to
 // ValidationErrors, containing a list of errors inside). When error is printed as string, it will
 // automatically contains the full list of validation errors.
-func (v *Validator) Validate() error {
+func (v *Validator) Validate() field.ErrorList {
 	err := v.val.Struct(v.data)
 	if err == nil {
 		return nil
 	}
 
-	return err
+	if _, ok := err.(*validator.InvalidValidationError); ok {
+		return field.ErrorList{field.Invalid(field.NewPath(""), err.Error(), "")}
+	}
+
+	allErrs := field.ErrorList{}
+
+	// collect human-readable errors
+	vErrors, _ := err.(validator.ValidationErrors)
+	for _, vErr := range vErrors {
+		allErrs = append(allErrs, field.Invalid(field.NewPath(vErr.Namespace()), vErr.Translate(v.trans), ""))
+	}
+
+	return allErrs
 }
