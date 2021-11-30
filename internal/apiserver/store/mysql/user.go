@@ -65,3 +65,8 @@ func (u *users) Get(ctx context.Context, username string, opts metav1.GetOptions
 
 	return user, nil
 }
+
+// List return all users.
+func (u *users) List(ctx context.Context, opts metav1.ListOptions) (*v1.UserList, error) {
+
+}

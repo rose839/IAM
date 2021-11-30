@@ -84,7 +84,7 @@ type ObjectMeta struct {
 }
 
 // ListOptions is the query options to a standard REST list call.
-type ListOption struct {
+type ListOptions struct {
 	TypeMeta `json:",inline"`
 
 	// LabelSelector is used to find matching REST resources.
