@@ -22,7 +22,7 @@ type Set map[string]string
 func (ls Set) String() string {
 	selector := make([]string, 0, len(ls))
 	for key, value := range ls {
-		selector := append(selector, key+"="+value)
+		selector = append(selector, key+"="+value)
 	}
 	// Sort for determinism.
 	sort.StringSlice(selector).Sort()
