@@ -2,9 +2,8 @@ package fields
 
 import (
 	"fmt"
+	"sort"
 	"strings"
-
-	"k8s.io/apimachinery/pkg/selection"
 )
 
 // TransformFunc transforms selectors.
@@ -184,7 +183,7 @@ func (t *hasTerm) Transform(fn TransformFunc) (Selector, error) {
 func (t *hasTerm) Requirements() Requirements {
 	return []Requirement{{
 		Field:    t.field,
-		Operator: selection.Equals,
+		Operator: Equals,
 		Value:    t.value,
 	}}
 }
@@ -234,7 +233,7 @@ func (t *notHasTerm) Transform(fn TransformFunc) (Selector, error) {
 func (t *notHasTerm) Requirements() Requirements {
 	return []Requirement{{
 		Field:    t.field,
-		Operator: selection.NotEquals,
+		Operator: NotEquals,
 		Value:    t.value,
 	}}
 }
@@ -281,3 +280,76 @@ func EscapeValue(s string) string {
 	return valueEscaper.Replace(s)
 }
 
+// splitTerms returns the comma-separated terms contained in the given fieldSelector.
+// Backslash-escaped commas are treated as data instead of delimiters,
+// and are included in the returned terms, with the leading backslash preserved.
+func splitTerms(fieldSelector string) []string {
+	if len(fieldSelector) == 0 {
+		return nil
+	}
+
+	terms := make([]string, 0, 1)
+	startIndex := 0
+	inSlash := false
+	for i, c := range fieldSelector {
+		switch {
+		case inSlash:
+			inSlash = false
+		case c == '\\':
+			inSlash = true
+		case c == ',':
+			terms = append(terms, fieldSelector[startIndex:i])
+			startIndex = i + 1
+		}
+	}
+
+	terms = append(terms, fieldSelector[startIndex:])
+
+	return terms
+}
+
+const (
+	notEqualOperator    = "!="
+	doubleEqualOperator = "=="
+	equalOperator       = "="
+)
+
+// termOperators holds the recognized operators supported in fieldSelectors.
+// doubleEqualOperator and equal are equivalent, but doubleEqualOperator is checked first
+// to avoid leaving a leading = character on the rhs value.
+var termOperators = []string{notEqualOperator, doubleEqualOperator, equalOperator}
+
+// splitTerm returns the lhs, operator, and rhs parsed from the given term, along with an
+// indicator of whether the parse was successful.
+// no escaping of special characters is supported in the lhs value,
+// so the first occurrence of a recognized operator is used as the split point.
+// the literal rhs is returned, and the caller is responsible for applying any desired unescaping.
+func splitTerm(term string) (lhs, op, rhs string, ok bool) {
+	for i := range term {
+		remaining := term[i:]
+		for _, op := range termOperators {
+			if strings.HasPrefix(remaining, op) {
+				return term[0:i], op, term[i+len(op):], true
+			}
+		}
+	}
+
+	return "", "", "", false
+}
+
+func parseSelector(selector string, fn TransformFunc) (Selector, error) {
+	parts := splitTerms(selector)
+	sort.StringSlice(parts).Sort()
+	var items []Selector
+	for _, part := range parts {
+		if part == "" {
+			continue
+		}
+
+		lhs, op, rhs, ok := splitTerm(part)
+		if !ok {
+			return nil, fmt.Errorf("invalid selector: '%s'; can't understand '%s'", selector, part)
+		}
+
+	}
+}
