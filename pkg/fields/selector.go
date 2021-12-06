@@ -56,6 +56,7 @@ func Nothing() Selector {
 	return nothingSelector{}
 }
 
+// Mutiple selector with 'and' relation.
 type andTerm []Selector
 
 func (t andTerm) Matches(ls Fields) bool {
@@ -352,4 +353,21 @@ func parseSelector(selector string, fn TransformFunc) (Selector, error) {
 		}
 
 	}
+}
+
+// OneTermEqualSelector returns an object that matches objects where one field/field equals one value.
+// Cannot return an error.
+func OneTermEqualSelector(k, v string) Selector {
+	return &hasTerm{field: k, value: v}
+}
+
+// OneTermNotEqualSelector returns an object that matches objects where one field/field does not equal one value.
+// Cannot return an error.
+func OneTermNotEqualSelector(k, v string) Selector {
+	return &notHasTerm{field: k, value: v}
+}
+
+// AndSelectors creates a selector that is the logical AND of all the given selectors.
+func AndSelectors(selectors ...Selector) Selector {
+	return andTerm(selectors)
 }

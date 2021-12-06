@@ -5,7 +5,8 @@ import (
 	"strings"
 )
 
-// Fields allows you to present fields independently from their storage.
+// Fields allows you to present fields independently from their underlying storage.
+// It's value is the real value that was stored in storage.
 type Fields interface {
 	// Has returns whether the provided field exists.
 	Has(field string) (exists bool)
