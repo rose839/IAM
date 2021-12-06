@@ -1,6 +1,7 @@
 package fields
 
 import (
+	"bytes"
 	"fmt"
 	"sort"
 	"strings"
@@ -281,6 +282,93 @@ func EscapeValue(s string) string {
 	return valueEscaper.Replace(s)
 }
 
+// InvalidEscapeSequence indicates an error occurred unescaping a field selector.
+type InvalidEscapeSequence struct {
+	sequence string
+}
+
+func (i InvalidEscapeSequence) Error() string {
+	return fmt.Sprintf("invalid field selector: invalid escape sequence: %s", i.sequence)
+}
+
+// UnescapedRune indicates an error occurred unescaping a field selector.
+type UnescapedRune struct {
+	r rune
+}
+
+func (i UnescapedRune) Error() string {
+	return fmt.Sprintf("invalid field selector: unescaped character in value: %v", i.r)
+}
+
+// UnescapeValue unescapes a fieldSelector value and returns the original literal value.
+// May return the original string if it contains no escaped or special characters.
+func UnescapeValue(s string) (string, error) {
+	// if there's no escaping or special characters, just return to avoid allocation
+	if !strings.ContainsAny(s, `\,=`) {
+		return s, nil
+	}
+
+	v := bytes.NewBuffer(make([]byte, 0, len(s)))
+	inSlash := false
+	for _, c := range s {
+		if inSlash {
+			switch c {
+			case '\\', ',', '=':
+				// omit the \ for recognized escape sequences
+				v.WriteRune(c)
+			default:
+				// error on unrecognized escape sequences
+				return "", InvalidEscapeSequence{sequence: string([]rune{'\\', c})}
+			}
+			inSlash = false
+
+			continue
+		}
+
+		switch c {
+		case '\\':
+			inSlash = true
+		case ',', '=':
+			// unescaped , and = characters are not allowed in field selector values
+			return "", UnescapedRune{r: c}
+		default:
+			v.WriteRune(c)
+		}
+	}
+
+	// Ending with a single backslash is an invalid sequence
+	if inSlash {
+		return "", InvalidEscapeSequence{sequence: "\\"}
+	}
+
+	return v.String(), nil
+}
+
+// ParseSelectorOrDie takes a string representing a selector and returns an
+// object suitable for matching, or panic when an error occur.
+func ParseSelectorOrDie(s string) Selector {
+	selector, err := ParseSelector(s)
+	if err != nil {
+		panic(err)
+	}
+
+	return selector
+}
+
+// ParseSelector takes a string representing a selector and returns an
+// object suitable for matching, or an error.
+func ParseSelector(selector string) (Selector, error) {
+	return parseSelector(selector,
+		func(lhs, rhs string) (newLhs, newRhs string, err error) {
+			return lhs, rhs, nil
+		})
+}
+
+// ParseAndTransformSelector parses the selector and runs them through the given TransformFunc.
+func ParseAndTransformSelector(selector string, fn TransformFunc) (Selector, error) {
+	return parseSelector(selector, fn)
+}
+
 // splitTerms returns the comma-separated terms contained in the given fieldSelector.
 // Backslash-escaped commas are treated as data instead of delimiters,
 // and are included in the returned terms, with the leading backslash preserved.
@@ -351,8 +439,26 @@ func parseSelector(selector string, fn TransformFunc) (Selector, error) {
 		if !ok {
 			return nil, fmt.Errorf("invalid selector: '%s'; can't understand '%s'", selector, part)
 		}
-
+		unescapedRHS, err := UnescapeValue(rhs)
+		if err != nil {
+			return nil, err
+		}
+		switch op {
+		case notEqualOperator:
+			items = append(items, &notHasTerm{field: lhs, value: unescapedRHS})
+		case doubleEqualOperator:
+			items = append(items, &hasTerm{field: lhs, value: unescapedRHS})
+		case equalOperator:
+			items = append(items, &hasTerm{field: lhs, value: unescapedRHS})
+		default:
+			return nil, fmt.Errorf("invalid selector: '%s'; can't understand '%s'", selector, part)
+		}
 	}
+	if len(items) == 1 {
+		return items[0].Transform(fn)
+	}
+
+	return andTerm(items).Transform(fn)
 }
 
 // OneTermEqualSelector returns an object that matches objects where one field/field equals one value.
