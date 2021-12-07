@@ -3,6 +3,7 @@ package idutil
 import (
 	"crypto/rand"
 
+	"github.com/rose839/IAM/pkg/iputil"
 	"github.com/sony/sonyflake"
 	hashids "github.com/speps/go-hashids"
 )
@@ -17,6 +18,10 @@ var sf *sonyflake.Sonyflake
 
 func init() {
 	var st sonyflake.Settings
+	st.MachineID = func() (uint16, error) {
+		ip := iputil.GetLocalIP()
+		return uint16([]byte(ip)[2])<<8 + uint16([]byte(ip)[3]), nil
+	}
 
 	sf = sonyflake.NewSonyflake(st)
 }
