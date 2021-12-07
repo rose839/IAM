@@ -3,12 +3,12 @@ package mysql
 import (
 	"context"
 
-	"github.com/marmotedu/component-base/pkg/fields"
 	v1 "github.com/rose839/IAM/api/apiserver/v1"
 	metav1 "github.com/rose839/IAM/api/meta/v1"
 	"github.com/rose839/IAM/internal/pkg/code"
 	"github.com/rose839/IAM/pkg/db"
 	"github.com/rose839/IAM/pkg/errors"
+	"github.com/rose839/IAM/pkg/fields"
 	"gorm.io/gorm"
 )
 
