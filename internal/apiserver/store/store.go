@@ -6,6 +6,7 @@ var client Factory
 type Factory interface {
 	Users() UserStore
 	Secrets() SecretStore
+	Policies() PolicyStore
 }
 
 // Client return the store client instance.

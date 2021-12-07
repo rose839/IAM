@@ -20,3 +20,7 @@ func (ds *dataStore) Users() store.UserStore {
 func (ds *dataStore) Secrets() store.SecretStore {
 	return newSecrets(ds)
 }
+
+func (ds *dataStore) Policies() store.PolicyStore {
+	return newPolicies(ds)
+}
