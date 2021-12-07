@@ -16,3 +16,7 @@ type dataStore struct {
 func (ds *dataStore) Users() store.UserStore {
 	return newUsers(ds)
 }
+
+func (ds *dataStore) Secrets() store.SecretStore {
+	return newSecrets(ds)
+}

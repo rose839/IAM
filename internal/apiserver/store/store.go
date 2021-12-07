@@ -5,6 +5,7 @@ var client Factory
 // Factory defines the iam platform storage interface.
 type Factory interface {
 	Users() UserStore
+	Secrets() SecretStore
 }
 
 // Client return the store client instance.

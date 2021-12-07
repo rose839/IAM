@@ -1,6 +1,7 @@
 package v1
 
 import (
+	"github.com/rose839/IAM/pkg/validation"
 	"github.com/rose839/IAM/pkg/validation/"
 	"github.com/rose839/IAM/pkg/validation/field"
 )
@@ -23,4 +24,10 @@ func (u *User) ValidateUpdate() field.ErrorList {
 	allErrs := val.Validate()
 
 	return allErrs
+}
+
+func (s *Secret) Validate() field.ErrorList {
+	val := validation.NewValidator(s)
+
+	return val.Validate()
 }
