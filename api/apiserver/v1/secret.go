@@ -1,6 +1,12 @@
 package v1
 
-import metav1 "github.com/rose839/IAM/api/meta/v1"
+import (
+	"encoding/json"
+
+	metav1 "github.com/rose839/IAM/api/meta/v1"
+	"github.com/rose839/IAM/pkg/idutil"
+	"gorm.io/gorm"
+)
 
 // Secret represents a secret restful resource.
 // It is also used as gorm model.
@@ -37,3 +43,32 @@ func (s *Secret) TableName() string {
 	return "secret"
 }
 
+// BeforeCreate run before create database record.
+func (s *Secret) BeforeCreate(tx *gorm.DB) (err error) {
+	s.SecretID = idutil.NewSecretID()
+	s.SecretKey = idutil.NewSecretKey()
+	s.ExtendShadow = s.Extend.String()
+	return
+}
+
+// AfterCreate run after create database record.
+func (s *Secret) AfterCreate(tx *gorm.DB) (err error) {
+	s.InstanceID = idutil.GetInstanceID(s.ID, "secret-")
+	return tx.Save(s).Error
+}
+
+// BeforeUpdate run before update database record.
+func (s *Secret) BeforeUpdate(tx *gorm.DB) (err error) {
+	s.ExtendShadow = s.Extend.String()
+
+	return err
+}
+
+// AfterFind run after find to unmarshal a extend shadown string into metav1.Extend struct.
+func (s *Secret) AfterFind(tx *gorm.DB) (err error) {
+	if err := json.Unmarshal([]byte(s.ExtendShadow), &s.Extend); err != nil {
+		return err
+	}
+
+	return nil
+}
