@@ -169,3 +169,12 @@ func (u *userService) ListWithBadPerformance(ctx context.Context, opts metav1.Li
 
 	return &v1.UserList{ListMeta: users.ListMeta, Items: infos}, nil
 }
+
+func (u *userService) ChangePassword(ctx context.Context, user *v1.User) error {
+	// Save changed fields.
+	if err := u.store.Users().Update(ctx, user, metav1.UpdateOptions{}); err != nil {
+		return errors.WithCode(code.ErrDatabase, err.Error())
+	}
+
+	return nil
+}
