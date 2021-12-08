@@ -6,6 +6,7 @@ import (
 	v1 "github.com/rose839/IAM/api/apiserver/v1"
 	metav1 "github.com/rose839/IAM/api/meta/v1"
 	"github.com/rose839/IAM/internal/pkg/code"
+	"github.com/rose839/IAM/pkg/db"
 	"github.com/rose839/IAM/pkg/errors"
 	"github.com/rose839/IAM/pkg/fields"
 	"gorm.io/gorm"
@@ -93,7 +94,7 @@ func (p *policies) Get(ctx context.Context, username, name string, opts metav1.G
 // List return all policies.
 func (p *policies) List(ctx context.Context, username string, opts metav1.ListOptions) (*v1.PolicyList, error) {
 	ret := &v1.PolicyList{}
-	ol := gormutil.Unpointer(opts.Offset, opts.Limit)
+	ol := db.Unpointer(opts.Offset, opts.Limit)
 
 	if username != "" {
 		p.db = p.db.Where("username = ?", username)

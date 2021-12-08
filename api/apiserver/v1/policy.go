@@ -35,7 +35,7 @@ type PolicyList struct {
 	metav1.ListMeta `json:",inline"`
 
 	// List of policys.
-	Iterms []*Policy `json:"items"`
+	Items []*Policy `json:"items"`
 }
 
 // TableName maps to mysql table name.
