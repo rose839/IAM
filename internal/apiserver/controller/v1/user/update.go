@@ -9,25 +9,39 @@ import (
 	"github.com/rose839/IAM/pkg/errors"
 )
 
-func (u *UserController) Create(c *gin.Context) {
+func (u *UserController) Update(c *gin.Context) {
 	var r v1.User
 
 	if err := c.ShouldBindJSON(&r); err != nil {
 		core.WriteResponse(c, errors.WithCode(code.ErrBind, err.Error()), nil)
-	}
-
-	if errs := r.Validate(); len(errs) != 0 {
-		core.WriteResponse(c, errors.WithCode(code.ErrValidation, errs.ToAggregate().Error()), nil)
 
 		return
 	}
 
-	// Insert the user to the storage.
-	if err := u.srv.Users().Create(c, &r, metav1.CreateOptions{}); err != nil {
+	user, err := u.srv.Users().Get(c, c.Param("name"), metav1.GetOptions{})
+	if err != nil {
 		core.WriteResponse(c, err, nil)
 
 		return
 	}
 
-	core.WriteResponse(c, nil, r)
+	user.Nickname = r.Nickname
+	user.Email = r.Email
+	user.Phone = r.Phone
+	user.Extend = r.Extend
+
+	if errs := user.ValidateUpdate(); len(errs) != 0 {
+		core.WriteResponse(c, errors.WithCode(code.ErrValidation, errs.ToAggregate().Error()), nil)
+
+		return
+	}
+
+	// Save changed fields.
+	if err := u.srv.Users().Update(c, user, metav1.UpdateOptions{}); err != nil {
+		core.WriteResponse(c, err, nil)
+
+		return
+	}
+
+	core.WriteResponse(c, nil, user)
 }
