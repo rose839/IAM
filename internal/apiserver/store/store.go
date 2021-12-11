@@ -7,6 +7,7 @@ type Factory interface {
 	Users() UserStore
 	Secrets() SecretStore
 	Policies() PolicyStore
+	Close() error
 }
 
 // Client return the store client instance.
