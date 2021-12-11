@@ -2,7 +2,10 @@ package apiserver
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/rose839/IAM/internal/apiserver/controller/v1/user"
+	"github.com/rose839/IAM/internal/apiserver/store/mysql"
 	"github.com/rose839/IAM/internal/pkg/code"
+	"github.com/rose839/IAM/internal/pkg/middleware"
 	"github.com/rose839/IAM/internal/pkg/middleware/auth"
 	"github.com/rose839/IAM/pkg/core"
 	"github.com/rose839/IAM/pkg/errors"
@@ -30,17 +33,24 @@ func installController(g *gin.Engine) {
 	})
 
 	// v1 handlers, requiring authentication
+	storeIns, _ := mysql.GetMySQLFactoryOr(nil)
 	v1 := g.Group("/v1")
 	v1.Use(auto.AuthFunc())
 	{
 		// user RESTful resource
 		userv1 := v1.Group("/users")
+		userv1.Use(auto.AuthFunc(), middleware.Validation())
 		{
+			userController := user.NewUserController(storeIns)
+
+			userv1.POST("", userController.Create)
+
 		}
 
 		// police RESTful resource
 		policyv1 := v1.Group("/policies")
 		{
+
 		}
 
 		// secret RESTful resource
