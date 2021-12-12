@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/rose839/IAM/internal/pkg/middleware"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/sync/errgroup"
 )
@@ -16,8 +17,11 @@ import (
 // GenericAPIServer contains state for a iam api server.
 // type GenericAPIServer gin.Engine.
 type GenericAPIServer struct {
+	// list of middleware name that need be installed.
 	middlewares []string
-	mode        string
+
+	// "release" or "debug" mode.
+	mode string
 
 	// SecureServingInfo holds configuration of the TLS server.
 	SecureServingInfo *SecureServingInfo
@@ -29,11 +33,16 @@ type GenericAPIServer struct {
 	// gracefully shutdown returns.
 	ShutdownTimeout time.Duration
 
+	// wrapped gin engine.
 	*gin.Engine
-	healthz         bool
+
+	// whether provide health-check api interface.
+	healthz bool
+
 	enableMetrics   bool
 	enableProfiling bool
 
+	// insecure and secure rest api server
 	insecureServer, secureServer *http.Server
 }
 
@@ -48,6 +57,20 @@ func (s *GenericAPIServer) Setup() {
 
 // InstallMiddlewares install generic middlewares.
 func (s *GenericAPIServer) InstallMiddlewares() {
+	// necessary middlewares
+	s.Use(middleware.RequestID())
+	s.Use(middleware.Context())
+	s.Use(middleware.Limit())
+
+	// install custom middlewares
+	for _, m := range s.middlewares {
+		mw, ok := middleware.Middlewares[m]
+		if !ok {
+			continue
+		}
+
+		s.Use(mw)
+	}
 }
 
 // InstallAPIs install generic apis.

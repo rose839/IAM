@@ -3,7 +3,6 @@ package middleware
 import "github.com/gin-gonic/gin"
 
 const (
-	RequestID   = "requestID"
 	UsernameKey = "username"
 )
 

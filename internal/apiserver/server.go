@@ -5,13 +5,13 @@ import (
 	"log"
 
 	"github.com/rose839/IAM/internal/apiserver/config"
+	"github.com/rose839/IAM/internal/apiserver/store/mysql"
 	genericoptions "github.com/rose839/IAM/internal/pkg/options"
 	genericapiserver "github.com/rose839/IAM/internal/pkg/server"
 	"github.com/rose839/IAM/pkg/shutdown"
 	"github.com/rose839/IAM/pkg/shutdown/shutdownmanagers/posixsignal"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
-	"google.golang.org/grpc/reflection"
 )
 
 // apiServer represent iam apiserver runtime instance.
@@ -86,6 +86,9 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 	}
 
 	extraServer, err := extraConfig.complete().New()
+	if err != nil {
+		return nil, err
+	}
 
 	server := &apiServer{
 		gs:               gs,
@@ -101,9 +104,14 @@ func (s *apiServer) PrepareRun() preparedAPIServer {
 	initRouter(s.genericAPIServer.Engine)
 
 	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
+		mysqlStore, _ := mysql.GetMySQLFactoryOr(nil)
+		if mysqlStore != nil {
+			return mysqlStore.Close()
+		}
 
-		// close rest api server
+		// close rest api server and grpc server
 		s.genericAPIServer.Close()
+		s.gRPCAPIServer.Close()
 
 		return nil
 	}))
@@ -111,13 +119,13 @@ func (s *apiServer) PrepareRun() preparedAPIServer {
 }
 
 func (s preparedAPIServer) Run() error {
+	// start rpc server
+	go s.gRPCAPIServer.Run()
+
 	// start shutdown managers
 	if err := s.gs.Start(); err != nil {
 		log.Fatalf("start shutdown manager failed: %s", err.Error())
 	}
-
-	// start gprc server, this won't block
-	s.gRPCAPIServer.Run()
 
 	// this will block until api server close
 	s.genericAPIServer.Run()
@@ -147,7 +155,4 @@ func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 	opts := []grpc.ServerOption{grpc.MaxRecvMsgSize(c.MaxMsgSize), grpc.Creds(creds)}
 	grpcServer := grpc.NewServer(opts...)
 
-	reflection.Register(grpcServer)
-
-	return &grpcAPIServer{grpcServer, c.Addr}, nil
 }

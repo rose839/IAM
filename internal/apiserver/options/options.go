@@ -6,6 +6,7 @@ import (
 	genericoptions "github.com/rose839/IAM/internal/pkg/options"
 	"github.com/rose839/IAM/internal/pkg/server"
 	cliflag "github.com/rose839/IAM/pkg/app"
+	"github.com/rose839/IAM/pkg/idutil"
 )
 
 // Options runs a iam api server.
@@ -59,6 +60,9 @@ func (o *Options) String() string {
 
 // Complete set default Options.
 func (o *Options) Complete() error {
+	if o.JwtOptions.Key == "" {
+		o.JwtOptions.Key = idutil.NewSecretKey()
+	}
 	return o.SecureServing.Complete()
 }
 
