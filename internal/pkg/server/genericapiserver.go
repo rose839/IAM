@@ -8,9 +8,12 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gin-contrib/pprof"
 	"github.com/gin-gonic/gin"
 	"github.com/rose839/IAM/internal/pkg/middleware"
+	"github.com/rose839/IAM/pkg/core"
 	log "github.com/sirupsen/logrus"
+	ginprometheus "github.com/zsais/go-gin-prometheus"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -60,7 +63,7 @@ func (s *GenericAPIServer) InstallMiddlewares() {
 	// necessary middlewares
 	s.Use(middleware.RequestID())
 	s.Use(middleware.Context())
-	s.Use(middleware.Limit())
+	s.Use(middleware.Limit(50, 100))
 
 	// install custom middlewares
 	for _, m := range s.middlewares {
@@ -78,9 +81,22 @@ func (s *GenericAPIServer) InstallAPIs() {
 	// install healthz handler
 	if s.healthz {
 		s.GET("/healthz", func(c *gin.Context) {
-
+			core.WriteResponse(c, nil, map[string]string{"status": "ok"})
 		})
 	}
+
+	// install metric handler
+	if s.enableMetrics {
+		prometheus := ginprometheus.NewPrometheus("gin")
+		prometheus.Use(s.Engine)
+	}
+
+	// install pprof handler
+	if s.enableProfiling {
+		pprof.Register(s.Engine)
+	}
+
+	// install version handler
 }
 
 // Run spawns the http server. It only returns when the port cannot be listened on initially.
