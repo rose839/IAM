@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/rose839/IAM/internal/apiserver/config"
+	"github.com/rose839/IAM/internal/apiserver/store"
 	"github.com/rose839/IAM/internal/apiserver/store/mysql"
 	genericoptions "github.com/rose839/IAM/internal/pkg/options"
 	genericapiserver "github.com/rose839/IAM/internal/pkg/server"
@@ -12,6 +13,7 @@ import (
 	"github.com/rose839/IAM/pkg/shutdown/shutdownmanagers/posixsignal"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
+	"google.golang.org/grpc/reflection"
 )
 
 // apiServer represent iam apiserver runtime instance.
@@ -155,4 +157,11 @@ func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 	opts := []grpc.ServerOption{grpc.MaxRecvMsgSize(c.MaxMsgSize), grpc.Creds(creds)}
 	grpcServer := grpc.NewServer(opts...)
 
+	// create mysql store instance
+	storeIns, _ := mysql.GetMySQLFactoryOr(c.MySQLOptions)
+	store.SetClient(storeIns)
+
+	reflection.Register(grpcServer)
+
+	return &grpcAPIServer{grpcServer, c.Addr}, nil
 }
