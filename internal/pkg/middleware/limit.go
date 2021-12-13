@@ -10,7 +10,7 @@ import (
 // ErrorLimitExceeded defines Limit exceeded error.
 var ErrorLimitExceeded = errors.New("Limit exceeded")
 
-//
+// Limit drops (HTTP status 429) the request if the limit is reached.
 func Limit(maxEventsPerSec float64, maxBurstSize int) gin.HandlerFunc {
 	limiter := rate.NewLimiter(rate.Limit(maxEventsPerSec), maxBurstSize)
 

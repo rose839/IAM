@@ -3,6 +3,7 @@ module github.com/rose839/IAM
 go 1.16
 
 require (
+	github.com/AlekSi/pointer v1.2.0
 	github.com/appleboy/gin-jwt/v2 v2.7.0
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
@@ -18,7 +19,10 @@ require (
 	github.com/mattn/go-runewidth v0.0.13 // indirect
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
 	github.com/novalagung/gubrak v1.0.0
+	github.com/ory/ladon v1.2.0
+	github.com/satori/go.uuid v1.2.0
 	github.com/sirupsen/logrus v1.8.1
+	github.com/sony/sonyflake v1.0.0
 	github.com/speps/go-hashids v2.0.0+incompatible
 	github.com/spf13/cobra v1.2.1
 	github.com/spf13/pflag v1.0.5

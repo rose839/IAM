@@ -9,7 +9,7 @@ import (
 	ut "github.com/go-playground/universal-translator"
 	validator "github.com/go-playground/validator/v10"
 	"github.com/go-playground/validator/v10/translations/en"
-	"github.com/rose839/pkg/validation/field"
+	"github.com/rose839/IAM/pkg/validation/field"
 )
 
 const (

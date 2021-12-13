@@ -2,7 +2,6 @@ package v1
 
 import (
 	"github.com/rose839/IAM/pkg/validation"
-	"github.com/rose839/IAM/pkg/validation/"
 	"github.com/rose839/IAM/pkg/validation/field"
 )
 

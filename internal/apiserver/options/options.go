@@ -18,6 +18,7 @@ type Options struct {
 	FeatureOptions          *genericoptions.FeatureOptions         `json:"feature"  mapstructure:"feature"`
 	JwtOptions              *genericoptions.JwtOptions
 	MySQLOptions            *genericoptions.MySQLOptions
+	RedisOptions            *genericoptions.RedisOptions
 }
 
 // NewOptions creates a new Options object with default parameters.
@@ -30,6 +31,7 @@ func NewOptions() *Options {
 		FeatureOptions:          genericoptions.NewFeatureOptions(),
 		JwtOptions:              genericoptions.NewJwtOptions(),
 		MySQLOptions:            genericoptions.NewMySQLOptions(),
+		RedisOptions:            genericoptions.NewRedisOptions(),
 	}
 
 	return o
@@ -49,6 +51,7 @@ func (o *Options) Flags() (fss cliflag.NamedFlagSets) {
 	o.FeatureOptions.AddFlags(fss.FlagSet("features"))
 	o.JwtOptions.AddFlags(fss.FlagSet("jwt"))
 	o.MySQLOptions.AddFlags(fss.FlagSet("mysql"))
+	o.RedisOptions.AddFlags(fss.FlagSet("redis"))
 
 	return fss
 }
@@ -77,6 +80,7 @@ func (o *Options) Validate() []error {
 	errs = append(errs, o.FeatureOptions.Validate()...)
 	errs = append(errs, o.JwtOptions.Validate()...)
 	errs = append(errs, o.MySQLOptions.Validate()...)
+	errs = append(errs, o.RedisOptions.Validate()...)
 
 	return errs
 }
