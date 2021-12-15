@@ -2,20 +2,20 @@
 
 IAM_ROOT=$(dirname "${BASH_SOURCE[0]}")/../..
 
-[[ -z $COMMON_SOURCED ]] && source ${IAM_ROOT}/scripts/install/common.sh
+[[ -z $COMMON_SOURCED ]] && source "${IAM_ROOT}"/scripts/install/common.sh
 
 # Print info after install.
 function iam::mariadb::info() {
 cat << EOF
-MariaDB Login: mysql -h127.0.0.1 -u${MARIADB_ADMIN_USERNAME} -p'${MARIADB_ADMIN_PASSWORD}'
+MariaDB Login: mysql -h127.0.0.1 -u'${MARIADB_ADMIN_USERNAME}' -p'${MARIADB_ADMIN_PASSWORD}'
 EOF
 }
 
 # Install
 function iam::mariadb::install() {
-    
+
   # 1. Config MariaDB 10.2 Yum source.
-  echo ${LINUX_PASSWORD} | sudo -S bash -c "cat << 'EOF' > /etc/yum.repos.d/mariadb-10.2.repo
+  echo "${LINUX_PASSWORD}" | sudo -S bash -c "cat << 'EOF' > /etc/yum.repos.d/mariadb-10.2.repo
 # MariaDB 10.2 CentOS repository list - created 2020-10-23 01:54 UTC
 # http://downloads.mariadb.org/mariadb/repositories/
 [mariadb]
@@ -60,7 +60,7 @@ function iam::mariadb::status() {
         return 1
     }
 
-    mysql -u${MARIADB_ADMIN_USERNAME} -p${MARIADB_ADMIN_PASSWORD} -e quit &>/dev/null || {
+    mysql -u"${MARIADB_ADMIN_USERNAME}" -p"${MARIADB_ADMIN_PASSWORD}" -e quit &>/dev/null || {
         iam::log::error "can not login with root, mariadb maybe not initialized properly"
         return 1
     }

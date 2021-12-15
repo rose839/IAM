@@ -5,12 +5,12 @@ IAM_VERBOSE=${IAM_VERBOSE:-5}
 
 function iam::log::info() {
     local V=${V:-0}
-    if ((${IAM_VERBOSE} < $V)); then
+    if (($IAM_VERBOSE < $V)); then
         return
     fi
 
     for message; do
-        echo $message
+        echo "$message"
     done
 }
 

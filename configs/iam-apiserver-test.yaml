@@ -1,0 +1,57 @@
+# iam-apiserver配置文件
+
+# RESTful服务配置
+server:
+  mode: debug # server mode: release, debug, test. 默认为release
+  healthz: true # 是否开启健康检查，如果开启会安装/healthz路由，默认为true
+  middlewares: recovery,logger,secure,nocache,cors,dump # 加载的 gin 中间件列表，多个中间件，逗号(,)隔开
+  max-ping-count: 3 # http 服务启动后，自检尝试次数，默认 3
+
+# GRPC服务配置
+grpc:
+  bind-address: 0.0.0.0 # grpc 安全模式的 IP 地址，默认 0.0.0.0
+  bind-port: 8081 # grpc 安全模式的端口号，默认 8081
+
+# HTTP配置
+insecure:
+  bind-address: 0.0.0.0 # 绑定的不安全 IP 地址，设置为 0.0.0.0 表示使用全部网络接口，默认为 127.0.0.1
+  bind-port:  8080 # 提供非安全认证的监听端口，默认为 8080
+
+# HTTPS配置
+secure:
+  bind-address: 0.0.0.0 # HTTPS 安全模式的 IP 地址，默认为 0.0.0.0
+  bind-port: 8443  # 使用 HTTPS 安全模式的端口号，设置为 0 表示不启用 HTTPS，默认为 8443
+  tls:
+    #cert-dir: .iam/cert # TLS 证书所在的目录，默认值为 /var/run/iam
+    #pair-name: iam # TLS 私钥对名称，默认 iam
+      cert-key:
+        cert-file: ${IAM_APISERVER_SECURE_TLS_CERT_KEY_CERT_FILE} # 包含 x509 证书的文件路径，用 HTTPS 认证
+        private-key-file: ${IAM_APISERVER_SECURE_TLS_CERT_KEY_PRIVATE_KEY_FILE} # TLS 私钥
+
+# MySQL数据库相关配置
+mysql:
+  host: 0.0.0.0:3306 # MySQL 机器 ip 和端口，默认 127.0.0.1:3306
+  username: test # MySQL 用户名(建议授权最小权限集)
+  password: 123456 # MySQL 用户密码
+  database: test # iam 系统所用的数据库名
+  max-idle-connections: 100 # MySQL 最大空闲连接数，默认 100
+  max-open-connections: 100 # MySQL 最大打开的连接数，默认 100
+  max-connection-life-time: 10s # 空闲连接最大存活时间，默认 10s
+  log-level: 4 # GORM log level, 1: silent, 2:error, 3:warn, 4:info
+
+# Redis配置
+redis:
+  host: 0.0.0.0:6379 # redis 地址，默认 127.0.0.1:6379
+  port: 6379 # # redis 端口，默认 6379
+  password: 123456 # redis 密码
+
+# JWT配置
+  realm: JWT # jwt标识
+  key: dfVpOK8LZeJLZHYmHdb1VdyRrACKpqoo # 服务端密钥
+  timeout: 24h # token过期时间
+  max-refresh: 24h # token更新时间
+
+# 服务配置
+feature:
+  enable-metrics: true # 开启prometheus metrics, router:  /metrics
+  profiling: true # 开启性能分析, 可以通过 <host>:<port>/debug/pprof/地址查看程序栈、线程等系统信息，默认值为 true
