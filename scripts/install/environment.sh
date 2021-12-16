@@ -3,7 +3,7 @@
 IAM_ROOT=$(dirname "${BASH_SOURCE[0]}")/../..
 
 # Set unified default password
-readonly PASSWORD=${PASSWORD:-"#EDC3edc"}
+readonly PASSWORD=${PASSWORD:-"iam59!z$"}
 
 # Linux system user name and password
 readonly LINUX_USERNAME=${LINUX_USERNAME:-"rose839"}
