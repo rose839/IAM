@@ -26,7 +26,7 @@ for env in $(sed -n 's/^[^#].*${\(.*\)}.*/\1/p' ${template_file}); do
     fi
 done
 
-if [ -z $missing ]; then
+if [ -n "$missing" ]; then
     iam::log::error 'You may run `source scripts/environment.sh` to set these environment'
     exit 1
 fi
