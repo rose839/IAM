@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 
+	pb "github.com/rose839/IAM/api/proto/apiserver/v1"
 	"github.com/rose839/IAM/internal/apiserver/config"
+	cachev1 "github.com/rose839/IAM/internal/apiserver/controller/v1/cache"
 	"github.com/rose839/IAM/internal/apiserver/store"
 	"github.com/rose839/IAM/internal/apiserver/store/mysql"
 	genericoptions "github.com/rose839/IAM/internal/pkg/options"
@@ -60,7 +62,7 @@ func buildGenericConfig(cfg *config.Config) (genericConfig *genericapiserver.Con
 
 func buildExtraConfig(cfg *config.Config) (*ExtraConfig, error) {
 	return &ExtraConfig{
-		Addr:         fmt.Sprint("%s:%d", cfg.GRPCOptions.BindAddress, cfg.GRPCOptions.BindPort),
+		Addr:         fmt.Sprintf("%s:%d", cfg.GRPCOptions.BindAddress, cfg.GRPCOptions.BindPort),
 		MaxMsgSize:   cfg.GRPCOptions.MaxMsgSize,
 		ServerCert:   cfg.SecureServing.ServerCert,
 		MySQLOptions: cfg.MySQLOptions,
@@ -161,6 +163,12 @@ func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 	storeIns, _ := mysql.GetMySQLFactoryOr(c.MySQLOptions)
 	store.SetClient(storeIns)
 
+	cacheIns, err := cachev1.GetCacheInsOr(storeIns)
+	if err != nil {
+
+	}
+
+	pb.RegisterCacheServer(grpcServer, cacheIns)
 	reflection.Register(grpcServer)
 
 	return &grpcAPIServer{grpcServer, c.Addr}, nil
