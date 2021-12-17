@@ -19,6 +19,7 @@ source "${env_file}"
 
 set +u
 
+# check whether some config was not set.
 for env in $(sed -n 's/^[^#].*${\(.*\)}.*/\1/p' ${template_file}); do
     if [ -z "$(eval echo \$${env})" ]; then
         iam::log::error "environment variable '${env}' not set"

@@ -151,11 +151,13 @@ func (c *ExtraConfig) complete() *completedExtraConfig {
 
 // New create a grpcAPIServer instance.
 func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
+	// create grpc encryption communication
 	creds, err := credentials.NewServerTLSFromFile(c.ServerCert.CertKey.CertFile, c.ServerCert.CertKey.KeyFile)
 	if err != nil {
 		log.Fatalf("Failed to generate credentials: %s", err.Error())
 	}
 
+	// create grpc server
 	opts := []grpc.ServerOption{grpc.MaxRecvMsgSize(c.MaxMsgSize), grpc.Creds(creds)}
 	grpcServer := grpc.NewServer(opts...)
 
@@ -163,12 +165,16 @@ func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 	storeIns, _ := mysql.GetMySQLFactoryOr(c.MySQLOptions)
 	store.SetClient(storeIns)
 
+	// create grpc instance
 	cacheIns, err := cachev1.GetCacheInsOr(storeIns)
 	if err != nil {
 
 	}
 
+	// register grpc server
 	pb.RegisterCacheServer(grpcServer, cacheIns)
+
+	// register grpc reflcetion server to enable grpcurl and grpc Swagger test
 	reflection.Register(grpcServer)
 
 	return &grpcAPIServer{grpcServer, c.Addr}, nil
