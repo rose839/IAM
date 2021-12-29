@@ -11,7 +11,7 @@ IAM_ROOT=$(dirname "${BASH_SOURCE[0]}")/..
 source "${IAM_ROOT}/scripts/lib/init.sh"
 
 if [ $# -ne 2 ]; then
-    iam::log::error "Usage: genconfig.sh scripts/environment.sh configs/iam-apiserver.yaml"
+    iam::log::error "Usage: genconfig.sh scripts/install/environment.sh configs/iam-apiserver.yaml"
     exit 1
 fi
 
