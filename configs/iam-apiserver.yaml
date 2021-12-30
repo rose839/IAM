@@ -46,6 +46,7 @@ redis:
   password: ${REDIS_PASSWORD} # redis 密码
 
 # JWT配置
+jwt:
   realm: JWT # jwt标识
   key: dfVpOK8LZeJLZHYmHdb1VdyRrACKpqoo # 服务端密钥
   timeout: 24h # token过期时间
