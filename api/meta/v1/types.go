@@ -41,7 +41,7 @@ type ObjectMeta struct {
 
 	// InstanceID defines a string type resource identifier,
 	// use prefixed to distinguish resource types, easy to remember, Url-friendly.
-	InstanceID string `json:"instanceID,omitempty" gorm:"unique,column:instanceID;type:varchar(32);not null"`
+	InstanceID string `json:"instanceID,omitempty" gorm:"unique;column:instanceID;type:varchar(32);not null"`
 
 	// Name must be unique. Is required when creating resources.
 	// Name is primarily intended for creation idempotence and configuration

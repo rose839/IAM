@@ -23,7 +23,7 @@ type Policy struct {
 	Username string `json:"username" gorm:"column:username" validate:"omitempty"`
 
 	// AuthzPolicy policy, will not be stored in db.
-	Policy AuthzPolicy `json:"policy,omitempty" gorm"-" validate:"omitempty"`
+	Policy AuthzPolicy `json:"policy,omitempty" gorm:"-" validate:"omitempty"`
 
 	// The ladon policy content, just a string format of ladon.DefaultPolicy. DO NOT modify directly.
 	PolicyShadow string `json:"-" gorm:"column:policyShadow" validate:"omitempty"`

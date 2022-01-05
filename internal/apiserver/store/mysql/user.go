@@ -68,7 +68,7 @@ func (u *users) DeleteCollection(ctx context.Context, usernames []string, opts m
 // Get return an user by the user identifier.
 func (u *users) Get(ctx context.Context, username string, opts metav1.GetOptions) (*v1.User, error) {
 	user := &v1.User{}
-	err := u.db.Where("name = ?", username).First(&user).Error
+	err := u.db.Where("name = ?", username).First(user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, errors.WithCode(code.ErrUserNotFound, err.Error())
