@@ -41,7 +41,7 @@ func installController(g *gin.Engine) *gin.Engine {
 	{
 		// user RESTful resource
 		userv1 := v1.Group("/users")
-		userv1.Use(auto.AuthFunc(), middleware.Validation())
+		userv1.Use(middleware.Validation())
 		{
 			userController := user.NewUserController(storeIns)
 
