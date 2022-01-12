@@ -95,7 +95,9 @@ error returned from ShutdownCallback.
 */
 package shutdown
 
-import "sync"
+import (
+	"sync"
+)
 
 // ShutdownCallback is an interface you have to implement for callbacks.
 // OnShutdown will be called when shutdown is requested. The parameter

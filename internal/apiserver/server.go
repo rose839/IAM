@@ -21,6 +21,7 @@ import (
 // apiServer represent iam apiserver runtime instance.
 type apiServer struct {
 	gs               *shutdown.GracefulShutdown         // graceful shutdown instance
+	redisOptions     *genericoptions.RedisOptions       // redis options
 	genericAPIServer *genericapiserver.GenericAPIServer // rest api server
 	gRPCAPIServer    *grpcAPIServer                     // grpc server
 }
@@ -96,6 +97,7 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 
 	server := &apiServer{
 		gs:               gs,
+		redisOptions:     cfg.RedisOptions,
 		genericAPIServer: genericServer,
 		gRPCAPIServer:    extraServer,
 	}
@@ -106,6 +108,9 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 func (s *apiServer) PrepareRun() preparedAPIServer {
 	// init rest api server router
 	initRouter(s.genericAPIServer.Engine)
+
+	// init redis connection
+	s.initRedisStore()
 
 	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
 		mysqlStore, _ := mysql.GetMySQLFactoryOr(nil)
@@ -178,4 +183,8 @@ func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 	reflection.Register(grpcServer)
 
 	return &grpcAPIServer{grpcServer, c.Addr}, nil
+}
+
+func (s *apiServer) initRedisStore() {
+
 }
