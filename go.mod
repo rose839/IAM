@@ -14,6 +14,7 @@ require (
 	github.com/go-playground/locales v0.13.0
 	github.com/go-playground/universal-translator v0.17.0
 	github.com/go-playground/validator/v10 v10.4.1
+	github.com/go-redis/redis/v7 v7.4.1
 	github.com/google/go-cmp v0.5.6 // indirect
 	github.com/gosuri/uitable v0.0.4
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
@@ -25,6 +26,8 @@ require (
 	github.com/moby/term v0.0.0-20210619224110-3f7ff695adc6
 	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/novalagung/gubrak v1.0.0
+	github.com/onsi/ginkgo v1.16.5 // indirect
+	github.com/onsi/gomega v1.17.0 // indirect
 	github.com/ory/ladon v1.2.0
 	github.com/prometheus/common v0.30.0 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect

@@ -1,6 +1,7 @@
 package apiserver
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -13,6 +14,7 @@ import (
 	genericapiserver "github.com/rose839/IAM/internal/pkg/server"
 	"github.com/rose839/IAM/pkg/shutdown"
 	"github.com/rose839/IAM/pkg/shutdown/shutdownmanagers/posixsignal"
+	"github.com/rose839/IAM/pkg/storage"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/reflection"
@@ -186,5 +188,29 @@ func (c *completedExtraConfig) New() (*grpcAPIServer, error) {
 }
 
 func (s *apiServer) initRedisStore() {
+	ctx, cancle := context.WithCancel(context.Background())
+	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
+		cancle()
 
+		return nil
+	}))
+
+	config := &storage.Config{
+		Host:                  s.redisOptions.Host,
+		Port:                  s.redisOptions.Port,
+		Addrs:                 s.redisOptions.Addrs,
+		MasterName:            s.redisOptions.MasterName,
+		Username:              s.redisOptions.Username,
+		Password:              s.redisOptions.Password,
+		Database:              s.redisOptions.Database,
+		MaxIdle:               s.redisOptions.MaxIdle,
+		MaxActive:             s.redisOptions.MaxActive,
+		Timeout:               s.redisOptions.Timeout,
+		EnableCluster:         s.redisOptions.EnableCluster,
+		UseSSL:                s.redisOptions.UseSSL,
+		SSLInsecureSkipVerify: s.redisOptions.SSLInsecureSkipVerify,
+	}
+
+	// try to connect to redis
+	go storage.ConnectToRedis(ctx, config)
 }
