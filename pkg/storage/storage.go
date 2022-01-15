@@ -11,11 +11,15 @@ package storage
 
 import (
 	"crypto/sha256"
+	"errors"
 	"fmt"
 	"hash"
 
 	"github.com/spaolacci/murmur3"
 )
+
+// ErrKeyNotFound is a standard error for when a key is not found in the storage engine.
+var ErrKeyNotFound = errors.New("key not found")
 
 // Defines algorithm constant.
 var (

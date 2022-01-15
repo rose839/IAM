@@ -240,5 +240,37 @@ func (r *RedisCluster) up() error {
 
 // GetKey will retrieve a key from the database.
 func (r *RedisCluster) GetKey(keyName string) (string, error) {
+	if err := r.up(); err != nil {
+		return "", err
+	}
 
+	cluster := r.singleton()
+
+	value, err := cluster.Get(r.fixKey(keyName)).Result()
+	if err != nil {
+		log.Debugf("Error trying to get value: %s", err.Error())
+		return "", ErrKeyNotFound
+	}
+
+	return value, nil
+}
+
+func (r *RedisCluster) GetMultiKey(keys []string) ([]string, error) {
+	if err != r.up(); err != nil {
+		return nil, err
+	}
+	cluster := r.singleton()
+	keyNames := make([]string, len(keys))
+	copy(keyNames, keys)
+	for index, val := range keyNames {
+		keyNames[index] = r.fixKey(val)
+	}
+
+	result := make([]string, 0)
+
+	switch v:= cluster.(type) {
+	case *redis.ClusterClient:
+	case *redis.Client:
+		
+	}
 }
