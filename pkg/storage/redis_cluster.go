@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-01-13 17:16:43
- * @LastEditTime: 2022-01-16 16:03:57
+ * @LastEditTime: 2022-01-16 16:06:06
  * @LastEditors: Please set LastEditors
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: /IAM/pkg/storage/redis_cluster.go
@@ -857,6 +857,361 @@ func (r *RedisCluster) RemoveFromList(keyName, value string) error {
 			log.String("keyName", keyName),
 			log.String("fixedKey", fixedKey),
 			log.String("value", value),
+			log.String("error", err.Error()),
+		)
+
+		return err
+	}
+
+	return nil
+}
+
+// GetListRange gets range of elements of list identified by keyName.
+func (r *RedisCluster) GetListRange(keyName string, from, to int64) ([]string, error) {
+	fixedKey := r.fixKey(keyName)
+
+	elements, err := r.singleton().LRange(fixedKey, from, to).Result()
+	if err != nil {
+		log.Error(
+			"LRANGE command failed",
+			log.String(
+				"keyName",
+				keyName,
+			),
+			log.String("fixedKey", fixedKey),
+			log.Int64("from", from),
+			log.Int64("to", to),
+			log.String("error", err.Error()),
+		)
+
+		return nil, err
+	}
+
+	return elements, nil
+}
+
+// AppendToSetPipelined append values to redis pipeline.
+func (r *RedisCluster) AppendToSetPipelined(key string, values [][]byte) {
+	if len(values) == 0 {
+		return
+	}
+
+	fixedKey := r.fixKey(key)
+	if err := r.up(); err != nil {
+		log.Debug(err.Error())
+
+		return
+	}
+	client := r.singleton()
+
+	pipe := client.Pipeline()
+	for _, val := range values {
+		pipe.RPush(fixedKey, val)
+	}
+
+	if _, err := pipe.Exec(); err != nil {
+		log.Errorf("Error trying to append to set keys: %s", err.Error())
+	}
+
+	// if we need to set an expiration time
+	if storageExpTime := int64(viper.GetDuration("analytics.storage-expiration-time")); storageExpTime != int64(-1) {
+		// If there is no expiry on the analytics set, we should set it.
+		exp, _ := r.GetExp(key)
+		if exp == -1 {
+			_ = r.SetExp(key, time.Duration(storageExpTime)*time.Second)
+		}
+	}
+}
+
+// GetSet return key set value.
+func (r *RedisCluster) GetSet(keyName string) (map[string]string, error) {
+	log.Debugf("Getting from key set: %s", keyName)
+	log.Debugf("Getting from fixed key set: %s", r.fixKey(keyName))
+	if err := r.up(); err != nil {
+		return nil, err
+	}
+	val, err := r.singleton().SMembers(r.fixKey(keyName)).Result()
+	if err != nil {
+		log.Errorf("Error trying to get key set: %s", err.Error())
+
+		return nil, err
+	}
+
+	result := make(map[string]string)
+	for i, value := range val {
+		result[strconv.Itoa(i)] = value
+	}
+
+	return result, nil
+}
+
+// AddToSet add value to key set.
+func (r *RedisCluster) AddToSet(keyName, value string) {
+	log.Debugf("Pushing to raw key set: %s", keyName)
+	log.Debugf("Pushing to fixed key set: %s", r.fixKey(keyName))
+	if err := r.up(); err != nil {
+		return
+	}
+	err := r.singleton().SAdd(r.fixKey(keyName), value).Err()
+	if err != nil {
+		log.Errorf("Error trying to append keys: %s", err.Error())
+	}
+}
+
+// RemoveFromSet remove a value from key set.
+func (r *RedisCluster) RemoveFromSet(keyName, value string) {
+	log.Debugf("Removing from raw key set: %s", keyName)
+	log.Debugf("Removing from fixed key set: %s", r.fixKey(keyName))
+	if err := r.up(); err != nil {
+		log.Debug(err.Error())
+
+		return
+	}
+	err := r.singleton().SRem(r.fixKey(keyName), value).Err()
+	if err != nil {
+		log.Errorf("Error trying to remove keys: %s", err.Error())
+	}
+}
+
+// IsMemberOfSet return whether the given value belong to key set.
+func (r *RedisCluster) IsMemberOfSet(keyName, value string) bool {
+	if err := r.up(); err != nil {
+		log.Debug(err.Error())
+
+		return false
+	}
+	val, err := r.singleton().SIsMember(r.fixKey(keyName), value).Result()
+	if err != nil {
+		log.Errorf("Error trying to check set member: %s", err.Error())
+
+		return false
+	}
+
+	log.Debugf("SISMEMBER %s %s %v %v", keyName, value, val, err)
+
+	return val
+}
+
+// SetRollingWindow will append to a sorted set in redis and extract a timed window of values.
+func (r *RedisCluster) SetRollingWindow(
+	keyName string,
+	per int64,
+	valueOverride string,
+	pipeline bool,
+) (int, []interface{}) {
+	log.Debugf("Incrementing raw key: %s", keyName)
+	if err := r.up(); err != nil {
+		log.Debug(err.Error())
+
+		return 0, nil
+	}
+	log.Debugf("keyName is: %s", keyName)
+	now := time.Now()
+	log.Debugf("Now is: %v", now)
+	onePeriodAgo := now.Add(time.Duration(-1*per) * time.Second)
+	log.Debugf("Then is: %v", onePeriodAgo)
+
+	client := r.singleton()
+	var zrange *redis.StringSliceCmd
+
+	pipeFn := func(pipe redis.Pipeliner) error {
+		pipe.ZRemRangeByScore(keyName, "-inf", strconv.Itoa(int(onePeriodAgo.UnixNano())))
+		zrange = pipe.ZRange(keyName, 0, -1)
+
+		element := redis.Z{
+			Score: float64(now.UnixNano()),
+		}
+
+		if valueOverride != "-1" {
+			element.Member = valueOverride
+		} else {
+			element.Member = strconv.Itoa(int(now.UnixNano()))
+		}
+
+		pipe.ZAdd(keyName, &element)
+		pipe.Expire(keyName, time.Duration(per)*time.Second)
+
+		return nil
+	}
+
+	var err error
+	if pipeline {
+		_, err = client.Pipelined(pipeFn)
+	} else {
+		_, err = client.TxPipelined(pipeFn)
+	}
+
+	if err != nil {
+		log.Errorf("Multi command failed: %s", err.Error())
+
+		return 0, nil
+	}
+
+	values := zrange.Val()
+
+	// Check actual value
+	if values == nil {
+		return 0, nil
+	}
+
+	intVal := len(values)
+	result := make([]interface{}, len(values))
+
+	for i, v := range values {
+		result[i] = v
+	}
+
+	log.Debugf("Returned: %d", intVal)
+
+	return intVal, result
+}
+
+// GetRollingWindow return rolling window.
+func (r RedisCluster) GetRollingWindow(keyName string, per int64, pipeline bool) (int, []interface{}) {
+	if err := r.up(); err != nil {
+		log.Debug(err.Error())
+
+		return 0, nil
+	}
+	now := time.Now()
+	onePeriodAgo := now.Add(time.Duration(-1*per) * time.Second)
+
+	client := r.singleton()
+	var zrange *redis.StringSliceCmd
+
+	pipeFn := func(pipe redis.Pipeliner) error {
+		pipe.ZRemRangeByScore(keyName, "-inf", strconv.Itoa(int(onePeriodAgo.UnixNano())))
+		zrange = pipe.ZRange(keyName, 0, -1)
+
+		return nil
+	}
+
+	var err error
+	if pipeline {
+		_, err = client.Pipelined(pipeFn)
+	} else {
+		_, err = client.TxPipelined(pipeFn)
+	}
+	if err != nil {
+		log.Errorf("Multi command failed: %s", err.Error())
+
+		return 0, nil
+	}
+
+	values := zrange.Val()
+
+	// Check actual value
+	if values == nil {
+		return 0, nil
+	}
+
+	intVal := len(values)
+	result := make([]interface{}, intVal)
+	for i, v := range values {
+		result[i] = v
+	}
+
+	log.Debugf("Returned: %d", intVal)
+
+	return intVal, result
+}
+
+// GetKeyPrefix returns storage key prefix.
+func (r *RedisCluster) GetKeyPrefix() string {
+	return r.KeyPrefix
+}
+
+// AddToSortedSet adds value with given score to sorted set identified by keyName.
+func (r *RedisCluster) AddToSortedSet(keyName, value string, score float64) {
+	fixedKey := r.fixKey(keyName)
+
+	log.Debug("Pushing raw key to sorted set", log.String("keyName", keyName), log.String("fixedKey", fixedKey))
+
+	if err := r.up(); err != nil {
+		log.Debug(err.Error())
+
+		return
+	}
+	member := redis.Z{Score: score, Member: value}
+	if err := r.singleton().ZAdd(fixedKey, &member).Err(); err != nil {
+		log.Error(
+			"ZADD command failed",
+			log.String("keyName", keyName),
+			log.String("fixedKey", fixedKey),
+			log.String("error", err.Error()),
+		)
+	}
+}
+
+// GetSortedSetRange gets range of elements of sorted set identified by keyName.
+func (r *RedisCluster) GetSortedSetRange(keyName, scoreFrom, scoreTo string) ([]string, []float64, error) {
+	fixedKey := r.fixKey(keyName)
+	log.Debug(
+		"Getting sorted set range",
+		log.String(
+			"keyName",
+			keyName,
+		),
+		log.String("fixedKey", fixedKey),
+		log.String("scoreFrom", scoreFrom),
+		log.String("scoreTo", scoreTo),
+	)
+
+	args := redis.ZRangeBy{Min: scoreFrom, Max: scoreTo}
+	values, err := r.singleton().ZRangeByScoreWithScores(fixedKey, &args).Result()
+	if err != nil {
+		log.Error(
+			"ZRANGEBYSCORE command failed",
+			log.String(
+				"keyName",
+				keyName,
+			),
+			log.String("fixedKey", fixedKey),
+			log.String("scoreFrom", scoreFrom),
+			log.String("scoreTo", scoreTo),
+			log.String("error", err.Error()),
+		)
+
+		return nil, nil, err
+	}
+
+	if len(values) == 0 {
+		return nil, nil, nil
+	}
+
+	elements := make([]string, len(values))
+	scores := make([]float64, len(values))
+
+	for i, v := range values {
+		elements[i] = fmt.Sprint(v.Member)
+		scores[i] = v.Score
+	}
+
+	return elements, scores, nil
+}
+
+// RemoveSortedSetRange removes range of elements from sorted set identified by keyName.
+func (r *RedisCluster) RemoveSortedSetRange(keyName, scoreFrom, scoreTo string) error {
+	fixedKey := r.fixKey(keyName)
+
+	log.Debug(
+		"Removing sorted set range",
+		log.String(
+			"keyName",
+			keyName,
+		),
+		log.String("fixedKey", fixedKey),
+		log.String("scoreFrom", scoreFrom),
+		log.String("scoreTo", scoreTo),
+	)
+
+	if err := r.singleton().ZRemRangeByScore(fixedKey, scoreFrom, scoreTo).Err(); err != nil {
+		log.Debug(
+			"ZREMRANGEBYSCORE command failed",
+			log.String("keyName", keyName),
+			log.String("fixedKey", fixedKey),
+			log.String("scoreFrom", scoreFrom),
+			log.String("scoreTo", scoreTo),
 			log.String("error", err.Error()),
 		)
 
