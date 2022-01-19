@@ -9,7 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rose839/IAM/pkg/homedir"
-	log "github.com/sirupsen/logrus"
+	"github.com/rose839/IAM/pkg/log"
 	"github.com/spf13/viper"
 )
 

@@ -98,7 +98,7 @@ func (o *Options) Build() error {
 	}
 
 	zc := &zap.Config{
-		Level:             zap.NewAtomicLevelAt(),
+		Level:             zap.NewAtomicLevelAt(zapLevel),
 		Development:       o.Development,
 		DisableCaller:     o.DisableCaller,
 		DisableStacktrace: o.DisableStacktrace,

@@ -9,7 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/rose839/IAM/pkg/errors"
-	log "github.com/sirupsen/logrus"
+	"github.com/rose839/IAM/pkg/log"
 )
 
 // ErrResponse defines the return messages when an error occurred.

@@ -12,7 +12,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/rose839/IAM/internal/pkg/middleware"
 	"github.com/rose839/IAM/pkg/core"
-	log "github.com/sirupsen/logrus"
+	"github.com/rose839/IAM/pkg/log"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
 	"golang.org/x/sync/errgroup"
 )
@@ -122,7 +122,7 @@ func (s *GenericAPIServer) Run() error {
 			return err
 		}
 
-		log.Info("Server on %s stopped", s.InsecureServingInfo.Address)
+		log.Infof("Server on %s stopped", s.InsecureServingInfo.Address)
 		return nil
 	})
 

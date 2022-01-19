@@ -5,8 +5,8 @@ import (
 	"os"
 
 	"github.com/fatih/color"
+	"github.com/rose839/IAM/pkg/log"
 	"github.com/rose839/IAM/pkg/term"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )

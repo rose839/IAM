@@ -7,7 +7,7 @@ import (
 	"io"
 	"strings"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/rose839/IAM/pkg/log"
 	"github.com/spf13/pflag"
 )
 

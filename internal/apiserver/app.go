@@ -5,6 +5,7 @@ import (
 	"github.com/rose839/IAM/internal/apiserver/config"
 	"github.com/rose839/IAM/internal/apiserver/options"
 	"github.com/rose839/IAM/pkg/app"
+	"github.com/rose839/IAM/pkg/log"
 )
 
 const commandDesc = `The IAM API server validates and configures data
@@ -28,6 +29,8 @@ func NewApp(basename string) *app.App {
 func run(opts *options.Options) app.RunFunc {
 	return func(basename string) error {
 		// init log
+		log.Init(opts.Log)
+		defer log.Flush()
 
 		// create app config
 		cfg, err := config.CreateConfigFromOptions(opts)

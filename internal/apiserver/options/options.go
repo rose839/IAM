@@ -15,6 +15,7 @@ import (
 	"github.com/rose839/IAM/internal/pkg/server"
 	cliflag "github.com/rose839/IAM/pkg/app"
 	"github.com/rose839/IAM/pkg/idutil"
+	"github.com/rose839/IAM/pkg/log"
 )
 
 // Options runs a iam api server.
@@ -27,6 +28,7 @@ type Options struct {
 	JwtOptions              *genericoptions.JwtOptions             `json:"jwt"      mapstructure:"jwt"`
 	MySQLOptions            *genericoptions.MySQLOptions           `json:"mysql"    mapstructure:"mysql"`
 	RedisOptions            *genericoptions.RedisOptions           `json:"redis"    mapstructure:"redis"`
+	Log                     *log.Options
 }
 
 // NewOptions creates a new Options object with default parameters.
@@ -40,6 +42,7 @@ func NewOptions() *Options {
 		JwtOptions:              genericoptions.NewJwtOptions(),
 		MySQLOptions:            genericoptions.NewMySQLOptions(),
 		RedisOptions:            genericoptions.NewRedisOptions(),
+		Log:                     log.NewOptions(),
 	}
 
 	return o
@@ -60,6 +63,7 @@ func (o *Options) Flags() (fss cliflag.NamedFlagSets) {
 	o.JwtOptions.AddFlags(fss.FlagSet("jwt"))
 	o.MySQLOptions.AddFlags(fss.FlagSet("mysql"))
 	o.RedisOptions.AddFlags(fss.FlagSet("redis"))
+	o.Log.AddFlags(fss.FlagSet("logs"))
 
 	return fss
 }

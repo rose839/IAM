@@ -19,8 +19,8 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v7"
+	"github.com/rose839/IAM/pkg/log"
 	uuid "github.com/satori/go.uuid"
-	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
