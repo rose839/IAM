@@ -163,7 +163,7 @@ func (a *App) buildCommand() {
 		usageFmt := "Usage:\n  %s\n"
 		termWidth, _, err := term.TerminalSize(cmd.OutOrStdout())
 		if err != nil {
-			log.Fatal(err)
+			log.Fatalf(err.Error())
 		}
 
 		// set help func, called at "-h/--help" flag

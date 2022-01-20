@@ -475,7 +475,6 @@ func (r *RedisCluster) GetKeys(filter string) []string {
 	}
 
 	var err error
-	var values []string
 	sessions := make([]string, 0)
 
 	switch v := client.(type) {
@@ -819,8 +818,8 @@ func (r *RedisCluster) GetAndDeleteSet(keyName string) []interface{} {
 // AppendToSet append a value to the key set.
 func (r *RedisCluster) AppendToSet(keyName, value string) {
 	fixedKey := r.fixKey(keyName)
-	log.Debug("Pushing to raw key list, key name: %s", keyName)
-	log.Debug("Appending to fixed key list, fixed key: %s", fixedKey)
+	log.Debugf("Pushing to raw key list, key name: %s", keyName)
+	log.Debugf("Appending to fixed key list, fixed key: %s", fixedKey)
 	if err := r.up(); err != nil {
 		return
 	}
@@ -832,7 +831,7 @@ func (r *RedisCluster) AppendToSet(keyName, value string) {
 // Exists check if keyName exists.
 func (r *RedisCluster) Exists(keyName string) (bool, error) {
 	fixedKey := r.fixKey(keyName)
-	log.Debug("Checking if exists, key name: %s", fixedKey)
+	log.Debugf("Checking if exists, key name: %s", fixedKey)
 
 	exists, err := r.singleton().Exists(fixedKey).Result()
 	if err != nil {
@@ -851,7 +850,7 @@ func (r *RedisCluster) Exists(keyName string) (bool, error) {
 func (r *RedisCluster) RemoveFromList(keyName, value string) error {
 	fixedKey := r.fixKey(keyName)
 
-	log.Debug(
+	log.Debugf(
 		"Removing value from list, keyname: %s, fixed key: %s, value: %s",
 		keyName,
 		fixedKey,
@@ -859,7 +858,7 @@ func (r *RedisCluster) RemoveFromList(keyName, value string) error {
 	)
 
 	if err := r.singleton().LRem(fixedKey, 0, value).Err(); err != nil {
-		log.Error(
+		log.Errorf(
 			"LREM command failed, keyname: %s, fixed key: %s, value: %s, error: %s",
 			keyName,
 			fixedKey,
@@ -879,7 +878,7 @@ func (r *RedisCluster) GetListRange(keyName string, from, to int64) ([]string, e
 
 	elements, err := r.singleton().LRange(fixedKey, from, to).Result()
 	if err != nil {
-		log.Error(
+		log.Errorf(
 			"LRANGE command failed, keyname: %s, fixed key: %s, from: %s, to: %s, error: %s",
 			keyName,
 			fixedKey,
@@ -902,7 +901,7 @@ func (r *RedisCluster) AppendToSetPipelined(key string, values [][]byte) {
 
 	fixedKey := r.fixKey(key)
 	if err := r.up(); err != nil {
-		log.Debug(err.Error())
+		log.Debugf(err.Error())
 
 		return
 	}
