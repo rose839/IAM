@@ -10,6 +10,7 @@ const (
 	XRequestIDKey = "X-Request-ID"
 )
 
+// Add request id if no request id found in request headers.
 func RequestID() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Check for incoming header, use it if exists

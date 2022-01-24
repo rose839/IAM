@@ -9,15 +9,17 @@ import (
 	"github.com/rose839/IAM/internal/pkg/code"
 	"github.com/rose839/IAM/pkg/core"
 	"github.com/rose839/IAM/pkg/errors"
+	"github.com/rose839/IAM/pkg/log"
 )
 
 // Validation make sure users have the right resource permission and operation.
 func Validation() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// normal users, not admin
-		if err := isAdmin(c); err != nil {
+		if !isAdmin(c) {
 			switch c.FullPath() {
 			case "/v1/users":
+				// non-admin user can't get user list
 				if c.Request.Method != http.MethodPost {
 					core.WriteResponse(c, errors.WithCode(code.ErrPermissionDenied, ""), nil)
 					c.Abort()
@@ -25,6 +27,7 @@ func Validation() gin.HandlerFunc {
 					return
 				}
 			case "/v1/users/:name", "/v1/users/:name/change_password":
+				// non-admin user can't delete user, and can't modify user info that not belong to itself
 				username := c.GetString("username")
 				if c.Request.Method == http.MethodDelete ||
 					(c.Request.Method != http.MethodDelete && username != c.Param("name")) {
@@ -42,16 +45,17 @@ func Validation() gin.HandlerFunc {
 }
 
 // isAdmin make sure the user is administrator.
-func isAdmin(c *gin.Context) error {
+func isAdmin(c *gin.Context) bool {
 	username := c.GetString(UsernameKey)
 	user, err := store.Client().Users().Get(c, username, metav1.GetOptions{})
 	if err != nil {
-		return errors.WithCode(code.ErrDatabase, err.Error())
+		log.Errorf("Check whether user is admin error: %s", err.Error())
+		return false
 	}
 
 	if user.IsAdmin != 1 {
-		return errors.WithCode(code.ErrPermissionDenied, "user %s is not a administrator", username)
+		return false
 	}
 
-	return nil
+	return true
 }
