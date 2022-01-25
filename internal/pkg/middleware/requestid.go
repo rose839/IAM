@@ -27,3 +27,19 @@ func RequestID() gin.HandlerFunc {
 		c.Next()
 	}
 }
+
+// GetRequestIDFromContext returns 'RequestID' from the given context if present.
+func GetRequestIDFromContext(c *gin.Context) string {
+	if v, ok := c.Get(XRequestIDKey); ok {
+		if requestID, ok := v.(string); ok {
+			return requestID
+		}
+	}
+
+	return ""
+}
+
+// GetRequestIDFromHeaders returns 'RequestID' from the headers if present.
+func GetRequestIDFromHeaders(c *gin.Context) string {
+	return c.Request.Header.Get(XRequestIDKey)
+}
