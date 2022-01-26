@@ -19,18 +19,12 @@ var defaultLogFormatter = func(param gin.LogFormatterParams) string {
 		resetColor = param.ResetColor()
 	}
 
-	requestID := ""
-	if value, ok := param.Keys[XRequestIDKey]; ok {
-		requestID = value.(string)
-	}
-
-	return fmt.Sprintf("%s%3d%s - [%s] \"%v %s%s%s %s %s\" %s",
+	return fmt.Sprintf("%s%3d%s - [%s] \"%v %s%s%s %s\" %s",
 		statusColor, param.StatusCode, resetColor,
 		param.ClientIP,
 		param.Latency,
 		methodColor, param.Method, resetColor,
 		param.Path,
-		requestID,
 		param.ErrorMessage,
 	)
 }
