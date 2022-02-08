@@ -5,6 +5,8 @@ import (
 	"os"
 	"runtime"
 	"time"
+
+	"github.com/rose839/IAM/internal/authzserver"
 )
 
 func main() {
@@ -13,4 +15,5 @@ func main() {
 		runtime.GOMAXPROCS(runtime.NumCPU())
 	}
 
+	authzserver.NewApp("iam-authz-server").Run()
 }
