@@ -27,11 +27,11 @@ type Config struct {
 	SecureServing   *SecureServingInfo
 	InsecureServing *InsecureServingInfo
 	Jwt             *JwtInfo
-	Mode            string // "debug" "release" "test"
-	Middlewares     []string
-	Healthz         bool
-	EnableProfiling bool
-	EnableMetrics   bool
+	Mode            string   // "debug" "release" "test"
+	Middlewares     []string // middlewares that need be enabled
+	Healthz         bool     // whether provide health-check(/healthz) api interface
+	EnableProfiling bool     // whether add /debug/pprof profile api interface
+	EnableMetrics   bool     // enable prometheus metrics exporter
 }
 
 // CertKey contains configuration items related to certificate.

@@ -36,7 +36,7 @@ type preparedAPIServer struct {
 // ExtraConfig defines extra configuration for the iam-apiserver.
 type ExtraConfig struct {
 	Addr         string // grpc address
-	MaxMsgSize   int    // max message size
+	MaxMsgSize   int    // grpc max message size
 	ServerCert   genericoptions.GeneratableKeyCert
 	MySQLOptions *genericoptions.MySQLOptions
 }
