@@ -23,7 +23,7 @@ func NewServerRunOptions() *ServerRunOptions {
 	}
 }
 
-// ApplyTo applies the run options to the method receiver and returns self.
+// ApplyTo applies the command options to the run server config.
 func (s *ServerRunOptions) ApplyTo(c *server.Config) error {
 	c.Mode = s.Mode
 	c.Healthz = s.Healthz

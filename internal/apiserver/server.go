@@ -107,6 +107,7 @@ func createAPIServer(cfg *config.Config) (*apiServer, error) {
 	return server, nil
 }
 
+// do some prepare work on apiserver object.
 func (s *apiServer) PrepareRun() preparedAPIServer {
 	// init rest api server router
 	initRouter(s.genericAPIServer.Engine)
@@ -115,6 +116,7 @@ func (s *apiServer) PrepareRun() preparedAPIServer {
 	s.initRedisStore()
 
 	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
+		// close mysql connection
 		mysqlStore, _ := mysql.GetMySQLFactoryOr(nil)
 		if mysqlStore != nil {
 			return mysqlStore.Close()
@@ -126,9 +128,11 @@ func (s *apiServer) PrepareRun() preparedAPIServer {
 
 		return nil
 	}))
+
 	return preparedAPIServer{s}
 }
 
+// start api server
 func (s preparedAPIServer) Run() error {
 	// start rpc server
 	go s.gRPCAPIServer.Run()
