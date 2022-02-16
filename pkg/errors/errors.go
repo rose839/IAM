@@ -1,4 +1,6 @@
-// Package errors provides simple error handling primitives.
+// Package errors provides simple error handling primitives,
+// it's developed based on github.com/pkg/errors, docs below also was copied
+// from github.com/pkg/errors.
 //
 // The traditional error handling idiom in Go is roughly akin to
 //
