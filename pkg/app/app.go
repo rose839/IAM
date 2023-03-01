@@ -22,15 +22,14 @@ type App struct {
 	runFunc     RunFunc              // user-defined main func
 	silence     bool                 // silence mode at startup phase
 	noConfig    bool                 // whether add "--config" flag
-	noVersion   bool                 // whether the application does not provide version flag
+	noVersion   bool                 // whether add "--version" flag
 	options     CliOptions           // app-defined struct of cli options, used to store config and register flag
-	commands    []*Command           // sub command
+	commands    []*Command           // sub commands
 	args        cobra.PositionalArgs // validation func of positional arguments(arg is belong to command, not flag)
 	cmd         *cobra.Command       // root command
 }
 
-// Option defines optional parameters for initializing the application
-// structure.
+// Option defines optional parameters for initializing the application structure.
 type Option func(*App)
 
 // WithOptions to open the application's function to read from the command line
@@ -69,14 +68,14 @@ func WithSilence() Option {
 	}
 }
 
-// WithNoConfig set the application does not provide config flag.
+// WithNoConfig set the application does not provide "--config" flag.
 func WithNoConfig() Option {
 	return func(a *App) {
 		a.noConfig = true
 	}
 }
 
-// WithNoVersion set the application does not provide version flag.
+// WithNoVersion set the application does not provide "--version" flag.
 func WithNoVersion() Option {
 	return func(a *App) {
 		a.noVersion = true
@@ -90,8 +89,7 @@ func WithValidArgs(args cobra.PositionalArgs) Option {
 	}
 }
 
-// WithDefaultValidArgs set default validation function to valid command arguments.
-// It's only used for no arguments command.
+// WithDefaultValidArgs set default validation function to valid valid non-flag arguments.
 func WithDefaultValidArgs() Option {
 	return func(a *App) {
 		a.args = func(cmd *cobra.Command, args []string) error {
