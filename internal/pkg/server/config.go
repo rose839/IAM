@@ -71,7 +71,7 @@ type JwtInfo struct {
 	// defaults to one hour
 	Timeout time.Duration
 
-	// defaults to zero
+	// defaults to one hour
 	MaxRefresh time.Duration
 }
 
@@ -105,6 +105,9 @@ func (c *Config) Complete() CompletedConfig {
 
 // New returns a new instance of GenericAPIServer from the given config.
 func (c CompletedConfig) New() (*GenericAPIServer, error) {
+	// setMode before gin.New(), otherwise it may print debug info
+	gin.SetMode(c.Mode)
+
 	s := &GenericAPIServer{
 		SecureServingInfo:   c.SecureServing,
 		InsecureServingInfo: c.InsecureServing,

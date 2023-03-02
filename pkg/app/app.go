@@ -7,6 +7,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/rose839/IAM/pkg/log"
 	"github.com/rose839/IAM/pkg/term"
+	"github.com/rose839/IAM/pkg/version/verflag"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -104,6 +105,13 @@ func WithDefaultValidArgs() Option {
 	}
 }
 
+// WithCommands add sub-commands to root command.
+func WithCommands(commands ...*Command) Option {
+	return func(a *App) {
+		a.commands = commands
+	}
+}
+
 // NewApp creates a new application instance based on the given application name,
 // base name, and other options.
 func NewApp(name string, basename string, opts ...Option) *App {
@@ -149,6 +157,7 @@ func (a *App) buildCommand() {
 		cmd.SetHelpCommand(helpCommand(a.name))
 	}
 
+	// Add flags to root command
 	var namedFlagSets NamedFlagSets
 	if a.options != nil {
 		// set app-defined grouped flagset
@@ -187,8 +196,14 @@ func (a *App) buildCommand() {
 
 	// Add "--version" flag
 	if !a.noVersion {
-
+		verflag.AddFlags(namedFlagSets.FlagSet("global"))
 	}
+
+	// Add "-h/--help" flag
+	namedFlagSets.FlagSet("global").BoolP("help", "h", false, fmt.Sprintf("help for %s", cmd.Name()))
+
+	// add new global flagset to cmd FlagSet
+	cmd.Flags().AddFlagSet(namedFlagSets.FlagSet("global"))
 
 	// set main app run func
 	if a.runFunc != nil {
@@ -215,8 +230,10 @@ func (a *App) Command() *cobra.Command {
 func (a *App) runCommand(cmd *cobra.Command, args []string) error {
 	printWorkingDir()
 	PrintFlag(cmd.Flags())
+
 	if !a.noVersion {
 		// display application version information
+		verflag.PrintAndExitIfRequested()
 	}
 
 	if !a.noConfig {

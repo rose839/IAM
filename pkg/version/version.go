@@ -65,7 +65,7 @@ func (info Info) Text() ([]byte, error) {
 func (info Info) toJson() string {
 	s, _ := json.Marshal(info)
 
-	return s
+	return string(s)
 }
 
 // Get returns the overall codebase version. It's for detecting

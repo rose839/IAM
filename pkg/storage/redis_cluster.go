@@ -99,7 +99,8 @@ func connectSingleton(config *Config) bool {
 
 func clusterConnectionIsOpen() bool {
 	c := singleton()
-	testKey := "redis-test-" + uuid.Must(uuid.NewV4(), nil).String()
+	uuidNew, _ := uuid.NewV4()
+	testKey := "redis-test-" + uuid.Must(uuidNew, nil).String()
 	if err := c.Set(testKey, "test", time.Second).Err(); err != nil {
 		log.Warnf("Error trying to set test key: %s", err.Error())
 		return false

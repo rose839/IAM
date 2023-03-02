@@ -115,6 +115,7 @@ func (s *apiServer) PrepareRun() preparedAPIServer {
 	// init redis connection
 	s.initRedisStore()
 
+	// add graceful shutdown callback
 	s.gs.AddShutdownCallback(shutdown.ShutdownFunc(func(string) error {
 		// close mysql connection
 		mysqlStore, _ := mysql.GetMySQLFactoryOr(nil)

@@ -13,6 +13,7 @@ import (
 	"github.com/rose839/IAM/internal/pkg/middleware"
 	"github.com/rose839/IAM/pkg/core"
 	"github.com/rose839/IAM/pkg/log"
+	"github.com/rose839/IAM/pkg/version"
 	ginprometheus "github.com/zsais/go-gin-prometheus"
 	"golang.org/x/sync/errgroup"
 )
@@ -49,9 +50,14 @@ type GenericAPIServer struct {
 	insecureServer, secureServer *http.Server
 }
 
-func (s *GenericAPIServer) Setup() {
-	gin.SetMode(s.mode)
+func initGenericAPIServer(s *GenericAPIServer) {
+	s.Setup()
+	s.InstallMiddlewares()
+	s.InstallAPIs()
+}
 
+// Setup do some setup work for gin engine.
+func (s *GenericAPIServer) Setup() {
 	// log route format at debug mode
 	gin.DebugPrintRouteFunc = func(httpMethod, absolutePath, handlerName string, nuHandlers int) {
 		log.Infof("%-6s %-s --> %s (%d handlers)", httpMethod, absolutePath, handlerName, nuHandlers)
@@ -63,7 +69,7 @@ func (s *GenericAPIServer) InstallMiddlewares() {
 	// necessary middlewares
 	s.Use(middleware.RequestID())
 	s.Use(middleware.Context())
-	s.Use(middleware.Limit(50, 100))
+	//s.Use(middleware.Limit(50, 100))
 
 	// install custom middlewares
 	for _, m := range s.middlewares {
@@ -97,6 +103,9 @@ func (s *GenericAPIServer) InstallAPIs() {
 	}
 
 	// install version handler
+	s.GET("/version", func(c *gin.Context) {
+		core.WriteResponse(c, nil, version.Get())
+	})
 }
 
 // Run spawns the http server. It only returns when the port cannot be listened on initially.
@@ -206,10 +215,4 @@ func (s *GenericAPIServer) ping(ctx context.Context) error {
 		default:
 		}
 	}
-}
-
-func initGenericAPIServer(s *GenericAPIServer) {
-	s.Setup()
-	s.InstallMiddlewares()
-	s.InstallAPIs()
 }
