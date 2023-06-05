@@ -17,6 +17,7 @@ fi
 
 source "${env_file}"
 
+# Disable undefined variable reporting errors.
 set +u
 
 # check whether some config was not set.
@@ -28,7 +29,7 @@ for env in $(sed -n 's/^[^#].*${\(.*\)}.*/\1/p' ${template_file}); do
 done
 
 if [ -n "$missing" ]; then
-    iam::log::error 'You may run `source scripts/environment.sh` to set these environment'
+    iam::log::error 'You may run `source scripts/install/environment.sh` to set these environment'
     exit 1
 fi
 
