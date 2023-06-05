@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # script feature: Generate IAM component yaml config files based on scripts/install/environment.sh.
-# example: genconfig.sh scripts/environment.sh configs/iam-apiserver.yaml
+# example: genconfig.sh scripts/install/environment.sh configs/iam-apiserver.yaml
 
 env_file="$1"
 template_file="$2"

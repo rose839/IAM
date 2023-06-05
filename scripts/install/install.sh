@@ -3,6 +3,10 @@
 IAM_ROOT=$(dirname "${BASH_SOURCE[0]}"/../..)
 source "${IAM_ROOT}/scripts/install/common.sh"
 
+source "${IAM_ROOT}/scripts/install/mariadb.sh"
+source "${IAM_ROOT}/scripts/install/mongodb.sh"
+source "${IAM_ROOT}/scripts/install/redis.sh"
+
 function iam::install::install_cfssl() {
     mkdir $HOME/bin/
     wget https://pkg.cfssl.org/R1.2/cfssl_linux-amd64 -O $HOME/bin/cfssl
