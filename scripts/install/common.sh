@@ -22,5 +22,5 @@ source "${IAM_ROOT}/scripts/install/environment.sh"
 
 # Redefine sudo, not need password.
 function iam::common::sudo() {
-    echo "$LINUX_PASSWORD" | sudo -S "$1"
+    echo "$LINUX_PASSWORD" | sudo -S $1
 }
